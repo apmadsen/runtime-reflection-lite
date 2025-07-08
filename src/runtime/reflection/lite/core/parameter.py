@@ -6,6 +6,8 @@ from runtime.reflection.lite.core.undefined import Undefined
 from runtime.reflection.lite.core.parameter_kind import ParameterKind
 
 class Parameter:
+    """The Parameter class represents a function parameter.
+    """
     __slots__ = ["__name", "__kind", "__doc", "__type", "__default"]
 
     def __init__(
@@ -22,25 +24,25 @@ class Parameter:
 
     @property
     def name(self) -> str:
-        """The parameter name
+        """The parameter name.
         """
         return self.__name
 
     @property
     def kind(self) -> ParameterKind:
-        """The parameter kind
+        """The parameter kind.
         """
         return self.__kind
 
     @property
     def parameter_type(self) -> type[Any]:
-        """The parameter type
+        """The parameter type.
         """
         return self.__type
 
     @property
     def default(self) -> Any:
-        """The parameter default
+        """The parameter default value.
         """
         return self.__default
 

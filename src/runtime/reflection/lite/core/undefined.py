@@ -19,6 +19,8 @@ class Meta(type): # pragma: no cover
 
 
 class Undefined(metaclass=Meta):
+    """The Undefined class represents a value that hasn't been defined.
+    """
     def __new__(cls):
         raise Exception("Undefined type is not supposed to be instantiated") # pragma: no cover
 

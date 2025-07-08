@@ -63,6 +63,16 @@ def get_frame(fn: Any, stack: list[FrameInfo], cls: Any | None) -> FrameType | N
 
 
 def reflect_function(fn: AnyFunction, cls: object | None = None) -> Signature:
+    """Gets the signature of the specified function.
+
+    Args:
+        fn (AnyFunction): The function on which to reflect.
+        cls (object | None, optional): The class to which the function belongs (if any). Defaults to None.
+
+    Returns:
+        Signature: Returns a function signature.
+    """
+
     fn = unwrap(fn)
     sig = get_signature(fn)
 
@@ -123,4 +133,12 @@ def reflect_function(fn: AnyFunction, cls: object | None = None) -> Signature:
 
 
 def get_constructor(cls: type[Any]) -> Signature:
+    """Gets the signature of the specified class' constructor. Note that overloads aren't taken into account.
+
+    Args:
+        cls (type[Any]): Tha class reflected.
+
+    Returns:
+        Signature: Returns a function signature.
+    """
     return reflect_function(getattr(cls, "__init__"), cls)

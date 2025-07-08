@@ -3,6 +3,10 @@ from typing import Iterator, Mapping, Iterable, Sequence
 from runtime.reflection.lite.core.parameter import Parameter
 
 class ParameterMapper(Iterable[Parameter]):
+    """The ParameterMapper class is a container for alle the parameters of a function. While supporting iteration over the parameters,
+    it also supports lookup via index or name like a mapping.
+    """
+
     __slots__ = ["__parameters", "__index"]
 
     def __init__(self, parameters: Sequence[Parameter]):

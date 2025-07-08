@@ -320,3 +320,16 @@ def test_shadowing_class():
             ("class1", ParameterKind.POSITIONAL_OR_KEYWORD, Class1, Undefined)
         ]
     )
+
+def test_example():
+    from runtime.reflection.lite import reflect_function
+
+    class Class1:
+        def __init__(self, value: str):
+            self.__value = value
+
+        def do_something(self, suffix: str | None = None) -> str:
+            return self.__value + (suffix or "")
+
+    signature1 = reflect_function(Class1.do_something) # -> (suffix: str | None) -> str
+    signature2 = reflect_function(Class1.__init__) # -> (value: str)

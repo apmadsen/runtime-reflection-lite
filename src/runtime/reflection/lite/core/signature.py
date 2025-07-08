@@ -4,6 +4,8 @@ from typingutils import get_type_name
 from runtime.reflection.lite.core.parameter_mapper import ParameterMapper
 
 class Signature:
+    """The Signature class represents the reflection of a function.
+    """
     __slots__ = ["__parameters", "__return_type"]
 
     def __init__(
@@ -16,17 +18,15 @@ class Signature:
 
     @property
     def parameters(self) -> ParameterMapper:
-        """The signature parameters
+        """The function parameters.
         """
         return self.__parameters
 
     @property
     def return_type(self) -> type[Any]:
-        """The signature return type
+        """The function return type.
         """
         return self.__return_type
-
-
 
     def __repr__(self) -> str:
         str_parameters = ", ".join([ str(p) for p in self.__parameters ]) if self.__parameters else ""

@@ -7,6 +7,24 @@
 
 # runtime-reflection-lite
 
+This project is meant as a light implementation of the later runtime-reflection project which will support deeper reflection of the source code. As such, it contains the bare minimum to reflect on functions and resolve type annotations.
+
+### Example
+
+```python
+from runtime.reflection.lite import reflect_function
+
+class Class1:
+     def __init__(self, value: str):
+          self.__value = value
+
+     def do_something(self, suffix: str | None = None) -> str:
+          return self.__value + (suffix or "")
+
+signature1 = reflect_function(Class1.do_something) # -> (suffix: str | None) -> str
+signature2 = reflect_function(Class1.__init__) # -> (value: str)
+```
+
 ## Full documentation
 
 [Go to documentation](https://github.com/apmadsen/runtime-reflection-lite/blob/main/docs/documentation.md)
