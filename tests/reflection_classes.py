@@ -1,15 +1,22 @@
 # pyright: basic
 from __future__ import annotations
-from datetime import datetime
 from typing import TYPE_CHECKING, Any, List, overload
 from abc import (
     ABC, abstractmethod,
     abstractproperty, abstractclassmethod, abstractstaticmethod # pyright: ignore[reportDeprecated]
 )
+import datetime
+import json
+import tests.reflection_modules as reflection_modules
+
 
 if TYPE_CHECKING:
     from typing import Sequence
 
+
+Variable1: int | None = 2
+Variable2: str | None = None
+Variable3 = 2.354
 
 class Class1:
 
@@ -37,14 +44,14 @@ class Class1:
 
 
 class Class2(Class1):
-    def __init__(self, field1: int, field2: str, field3: float, field4: bool, field5: datetime, field6: int, field7: float, field8: str):
+    def __init__(self, field1: int, field2: str, field3: float, field4: bool, field5: datetime.datetime, field6: int, field7: float, field8: str):
         super().__init__(field1, field2, field3, field4)
         self.field5 = field5
         self._field6 = field6
         self.__field7 = field7
         self.__field8 = field8
 
-    field5: datetime
+    field5: datetime.datetime
     _field6: int
     __field7: float
 
@@ -187,7 +194,8 @@ class ClassDerived(ClassBaseA, ClassBaseB):
 
 
 class Class5:
-    field1: int
+    field1: int = 0
+    field2: int
 
     def __init__(self):
         pass
@@ -281,3 +289,53 @@ class AbstractClass(ABC):
     @abstractmethod
     def _test5() -> bool:
         ...
+
+
+class Class7:
+    def __init__(self, value: str):
+        ...
+
+    @property
+    def value(self) -> str:
+        ...
+    @value.setter
+    def value(self, value: str) -> str:
+        ...
+
+    def do_something1(self, suffix: str | None = None) -> str:
+        ...
+
+    @classmethod
+    def do_something2(cls, y: float) -> str:
+        ...
+
+    @staticmethod
+    def do_something3(x: int) -> None:
+        ...
+
+    def _semi_private_function(self) -> None:
+        ...
+
+    def __private_function(self) -> None:
+        ...
+
+class Class8:
+    def __init__(self, x: "int"):
+        ...
+
+class Class9:
+    ...
+
+class Class10(Class8, Class9):
+    ...
+
+def public_function() -> None:
+    ...
+
+def _semi_private_function() -> None:
+    ...
+
+def __private_function() -> None:
+    ...
+
+class10 = Class10

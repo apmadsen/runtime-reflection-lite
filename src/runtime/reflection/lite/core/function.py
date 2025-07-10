@@ -1,0 +1,37 @@
+from typing import Any
+
+from runtime.reflection.lite.core.signature import Signature
+from runtime.reflection.lite.core.function_kind import FunctionKind
+from runtime.reflection.lite.core.member import Member
+from runtime.reflection.lite.core.member_type import MemberType
+
+class Function(Member):
+    __slots__ = [ "__kind", "__signature" ]
+
+    def __init__(
+        self,
+        member_type: MemberType,
+        kind: FunctionKind,
+        signature: Signature
+    ):
+        super().__init__(member_type)
+        self.__kind = kind
+        self.__signature = signature
+
+    @property
+    def kind(self) -> FunctionKind:
+        """The function kind.
+        """
+        return self.__kind
+
+    @property
+    def return_type(self) -> type[Any]:
+        """The function return type.
+        """
+        return self.__signature.return_type
+
+    @property
+    def signature(self) -> Signature:
+        """The function signature.
+        """
+        return self.__signature

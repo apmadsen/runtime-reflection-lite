@@ -11,7 +11,7 @@ class Signature:
     def __init__(
         self,
         parameters: ParameterMapper,
-        return_type: type[Any]
+        return_type: type[Any],
     ):
         self.__parameters = parameters
         self.__return_type = return_type
@@ -28,7 +28,7 @@ class Signature:
         """
         return self.__return_type
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str: # pragma: no cover
         str_parameters = ", ".join([ str(p) for p in self.__parameters ]) if self.__parameters else ""
         str_return = f" -> {get_type_name(self.__return_type)}" if self.__return_type else ""
         return f"({str_parameters}){str_return}"

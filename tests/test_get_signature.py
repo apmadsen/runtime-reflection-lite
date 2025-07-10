@@ -8,7 +8,7 @@ from unittest import TestCase, main
 
 T = TypeVar("T")
 
-from runtime.reflection.lite.core import reflect_function, get_constructor, Undefined, ParameterKind
+from runtime.reflection.lite import get_signature, get_constructor, Undefined, ParameterKind
 
 from tests.explore import explore
 from tests.reflection_classes import Class1, Class4, Class6, Class5
@@ -18,7 +18,7 @@ def test_reflect_function():
 
     test = Class6()
 
-    signature1 = reflect_function(Class6.Class7()._test2)
+    signature1 = get_signature(Class6.Class7()._test2)
     e1 = explore(signature1)
     assert e1 == (
         str,
@@ -27,7 +27,7 @@ def test_reflect_function():
         ]
     )
 
-    signature2 = reflect_function(Class6.Class7._test2)
+    signature2 = get_signature(Class6.Class7._test2)
     e2 = explore(signature2)
     assert e2 == (
         str,
@@ -37,7 +37,7 @@ def test_reflect_function():
     )
 
 
-    signature3 = reflect_function(Class6._test1)
+    signature3 = get_signature(Class6._test1)
     e3 = explore(signature3)
     assert e3 == (
         bool,
@@ -46,7 +46,7 @@ def test_reflect_function():
         ]
     )
 
-    signature4 = reflect_function(fn_test3)
+    signature4 = get_signature(fn_test3)
     e4 = explore(signature4)
     assert e4 == (
         bool,
@@ -55,7 +55,7 @@ def test_reflect_function():
         ]
     )
 
-    signature5 = reflect_function(test._test1)
+    signature5 = get_signature(test._test1)
     e5 = explore(signature5)
     assert e5 == (
         bool,
@@ -64,7 +64,7 @@ def test_reflect_function():
         ]
     )
 
-    signature6 = reflect_function(test._test2)
+    signature6 = get_signature(test._test2)
     e6 = explore(signature6)
     assert e6 == (
         None,
@@ -73,7 +73,7 @@ def test_reflect_function():
         ]
     )
 
-    signature7 = reflect_function(fn_test4)
+    signature7 = get_signature(fn_test4)
     e7 = explore(signature7)
     assert e7 == (
         bool,
@@ -82,11 +82,11 @@ def test_reflect_function():
         ]
     )
 
-    signature8 = reflect_function(object.__init__)
+    signature8 = get_signature(object.__init__)
     e8 = explore(signature8)
 
 
-    signature9 = reflect_function(fn_test5)
+    signature9 = get_signature(fn_test5)
     e9 = explore(signature9)
     assert e9 == (
         Undefined,
@@ -96,7 +96,7 @@ def test_reflect_function():
     )
 
 
-    signature10 = reflect_function(fn_test6)
+    signature10 = get_signature(fn_test6)
     e10 = explore(signature10)
     assert e10 == (
         Undefined,
@@ -133,7 +133,7 @@ def test_reflect_function_in_frame():
 
     test = Test1()
 
-    signature1 = reflect_function(Test1.Test2().test2)
+    signature1 = get_signature(Test1.Test2().test2)
     e1 = explore(signature1)
     assert e1 == (
         str,
@@ -142,7 +142,7 @@ def test_reflect_function_in_frame():
         ]
     )
 
-    signature2 = reflect_function(Test1.Test2.test2)
+    signature2 = get_signature(Test1.Test2.test2)
     e2 = explore(signature2)
     assert e2 == (
         str,
@@ -151,7 +151,7 @@ def test_reflect_function_in_frame():
         ]
     )
 
-    signature3 = reflect_function(Test1.test1)
+    signature3 = get_signature(Test1.test1)
     e3 = explore(signature3)
     assert e3 == (
         bool,
@@ -161,7 +161,7 @@ def test_reflect_function_in_frame():
         ]
     )
 
-    signature4 = reflect_function(test3)
+    signature4 = get_signature(test3)
     e4 = explore(signature4)
     assert e4 == (
         bool,
@@ -170,7 +170,7 @@ def test_reflect_function_in_frame():
         ]
     )
 
-    signature5 = reflect_function(test.test1)
+    signature5 = get_signature(test.test1)
     e5 = explore(signature5)
     assert e5 == (
         bool,
@@ -179,7 +179,7 @@ def test_reflect_function_in_frame():
         ]
     )
 
-    signature6 = reflect_function(test.test2)
+    signature6 = get_signature(test.test2)
     e6 = explore(signature6)
     assert e6 == (
         None,
@@ -188,7 +188,7 @@ def test_reflect_function_in_frame():
         ]
     )
 
-    signature7 = reflect_function(test4)
+    signature7 = get_signature(test4)
     e7 = explore(signature7)
     assert e7 == (
         bool,
@@ -210,7 +210,7 @@ def test_reflect_function_in_frame_async():
     async_result: dict[str, Any] = { "result": None }
     def async_reflector(fn: Callable[..., Any]):
         try:
-            signature = reflect_function(fn)
+            signature = get_signature(fn)
             async_result["result"] = signature
         except Exception as ex:
             from traceback import print_exc
@@ -244,51 +244,51 @@ def test_default_values():
 
     def test1_1( x: List[str] = [ "test" ]) -> None:
         ...
-    signature1_1 = reflect_function(test1_1)
+    signature1_1 = get_signature(test1_1)
     assert signature1_1.parameters["x"].default == [ "test" ]
 
     def test2_1( x: dict[str, int] = { "test": 2}) -> None:
         ...
-    signature2_1 = reflect_function(test2_1)
+    signature2_1 = get_signature(test2_1)
     assert signature2_1.parameters["x"].default == { "test": 2}
 
     def test3( x: set[str] = { "test" }) -> None:
         ...
-    signature3 = reflect_function(test3)
+    signature3 = get_signature(test3)
     assert signature3.parameters["x"].default == { "test" }
 
     def test4( x: Tuple[str, int] = ( "test", 2)) -> None:
         ...
-    signature4 = reflect_function(test4)
+    signature4 = get_signature(test4)
     assert signature4.parameters["x"].default == ( "test", 2)
 
 
 
     def test1_2( x: List[str] = [ o for o in tmp_list ]) -> None:
         ...
-    signature1_2 = reflect_function(test1_2)
+    signature1_2 = get_signature(test1_2)
     assert signature1_2.parameters["x"].default == [ o for o in tmp_list ]
 
     def test1_3( x: List[str] = [ *tmp_list, "test" ]) -> None:
         ...
-    signature1_3 = reflect_function(test1_3)
+    signature1_3 = get_signature(test1_3)
     assert signature1_3.parameters["x"].default == [ *tmp_list, "test" ]
 
 
     def test2_2( x: dict[str, int] = { k: v for k,v in tmp_dict.items() }) -> None:
         ...
-    signature2_2 = reflect_function(test2_2)
+    signature2_2 = get_signature(test2_2)
     assert signature2_2.parameters["x"].default == { k: v for k,v in tmp_dict.items() }
 
     def test2_3( x: dict[str, int] = { **tmp_dict, "test": 2}) -> None:
         ...
-    signature2_3 = reflect_function(test2_3)
+    signature2_3 = get_signature(test2_3)
     assert signature2_3.parameters["x"].default == { **tmp_dict, "test": 2}
 
 
     def test5( x: str = default()) -> None:
         ...
-    signature5 = reflect_function(test5)
+    signature5 = get_signature(test5)
     assert signature5.parameters["x"].default == default()
 
 
@@ -298,8 +298,8 @@ def test_method_vs_function():
 
     f1 = Class6._test1
     f2 = test1._test1
-    r1 = reflect_function(f1)
-    r2 = reflect_function(f2)
+    r1 = get_signature(f1)
+    r2 = get_signature(f2)
 
 
     x = 0
@@ -322,7 +322,7 @@ def test_shadowing_class():
     )
 
 def test_example():
-    from runtime.reflection.lite import reflect_function
+    from runtime.reflection.lite import get_signature
 
     class Class1:
         def __init__(self, value: str):
@@ -331,5 +331,5 @@ def test_example():
         def do_something(self, suffix: str | None = None) -> str:
             return self.__value + (suffix or "")
 
-    signature1 = reflect_function(Class1.do_something) # -> (suffix: str | None) -> str
-    signature2 = reflect_function(Class1.__init__) # -> (value: str)
+    signature1 = get_signature(Class1.do_something) # -> (suffix: str | None) -> str
+    signature2 = get_signature(Class1.__init__) # -> (value: str)

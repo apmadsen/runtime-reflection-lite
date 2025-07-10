@@ -29,5 +29,18 @@
                 "./tests",
             ]
         },
+        // {
+        //     "name": "Debug Unit Test",
+        //     "type": "python",
+        //     "request": "test",
+        //     "justMyCode": false,
+        // },
+        // {
+        //     "name": "Python: Test Module",
+        //     "type": "python",
+        //     "request": "launch",
+        //     "module": "tests",
+        //     "justMyCode": false
+        // }
     ]
 }

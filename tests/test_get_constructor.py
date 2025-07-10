@@ -1,7 +1,7 @@
 # pyright: basic
 from pytest import raises as assert_raises
 
-from runtime.reflection.lite.core import ParameterKind, Undefined, get_constructor, reflect_function
+from runtime.reflection.lite import ParameterKind, Undefined, get_constructor, get_signature
 
 
 from tests.explore import explore
@@ -28,7 +28,7 @@ def test_get_constructor():
         ]
     )
 
-    signature21 = reflect_function(Class4().__init__)
+    signature21 = get_signature(Class4().__init__)
     assert signature2 == signature21
 
     signature3 = get_constructor(Class6)
@@ -41,7 +41,7 @@ def test_get_constructor():
         ]
     )
 
-    signature31 = reflect_function(Class6().__init__)
+    signature31 = get_signature(Class6().__init__)
     assert signature3 == signature31
 
     signature4 = get_constructor(Class5)
@@ -50,5 +50,5 @@ def test_get_constructor():
         Undefined, []
     )
 
-    signature41 = reflect_function(Class5().__init__)
+    signature41 = get_signature(Class5().__init__)
     assert signature4 == signature41
