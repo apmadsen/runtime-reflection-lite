@@ -7,12 +7,12 @@
 
 # runtime-reflection-lite
 
-This project is meant as a light implementation of the later runtime-reflection project which will support deeper reflection of the source code. As such, it contains the bare minimum to reflect on functions and resolve type annotations.
+This project is meant as a lightweight implementation of the later reflection project which will support deeper reflection of the source code.
 
 ### Example
 
 ```python
-from runtime.reflection.lite import get_signature
+from runtime.reflection.lite import MemberFilter, get_signature, get_members
 
 class Class1:
      def __init__(self, value: str):
@@ -23,6 +23,9 @@ class Class1:
 
 signature1 = get_signature(Class1.do_something) # -> (suffix: str | None) -> str
 signature2 = get_signature(Class1.__init__) # -> (value: str)
+
+members = get_members(Class1, filter = MemberFilter.FUNCTIONS_AND_METHODS)
+info, member = members["do_something"] # -> MemberInfo, Method
 ```
 
 ## Full documentation

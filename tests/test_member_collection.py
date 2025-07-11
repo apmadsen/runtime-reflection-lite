@@ -29,7 +29,7 @@ def test_members_collection():
     assert len(constructors) == 1
     assert isinstance(constructors.subset(lambda m: m.name == "__init__")[0][1], Constructor)
 
-def test_example():
+def test_example_2():
     import runtime.reflection.lite
     from runtime.reflection.lite import MemberFilter, get_members
 
@@ -42,3 +42,19 @@ def test_example():
     assert member.kind == runtime.reflection.lite.FunctionKind.FUNCTION
 
     assert "Member" in classes
+
+def test_example_1():
+    from runtime.reflection.lite import MemberFilter, get_signature, get_members
+
+    class Class1:
+        def __init__(self, value: str):
+            self.__value = value
+
+        def do_something(self, suffix: str | None = None) -> str:
+            return self.__value + (suffix or "")
+
+    signature1 = get_signature(Class1.do_something) # -> (suffix: str | None) -> str
+    signature2 = get_signature(Class1.__init__) # -> (value: str)
+
+    members = get_members(Class1, filter = MemberFilter.FUNCTIONS_AND_METHODS)
+    info, member = members["do_something"] # -> MemberInfo, Method

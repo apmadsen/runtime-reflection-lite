@@ -321,15 +321,3 @@ def test_shadowing_class():
         ]
     )
 
-def test_example():
-    from runtime.reflection.lite import get_signature
-
-    class Class1:
-        def __init__(self, value: str):
-            self.__value = value
-
-        def do_something(self, suffix: str | None = None) -> str:
-            return self.__value + (suffix or "")
-
-    signature1 = get_signature(Class1.do_something) # -> (suffix: str | None) -> str
-    signature2 = get_signature(Class1.__init__) # -> (value: str)
