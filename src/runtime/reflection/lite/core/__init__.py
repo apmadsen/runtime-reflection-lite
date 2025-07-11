@@ -1,4 +1,4 @@
-from typing import Any, cast, overload
+from typing import Any, Callable, cast, overload
 from typingutils import AnyFunction, is_type
 from types import FrameType, ModuleType, MethodType
 from sys import modules
@@ -8,8 +8,11 @@ from inspect import (
     getattr_static, signature as builtin_get_signature, stack, unwrap
 )
 
+from runtime.reflection.lite.core.access_mode import AccessMode
+from runtime.reflection.lite.core.delegate import Delegate
 from runtime.reflection.lite.core.member import Member
 from runtime.reflection.lite.core.member_type import MemberType
+from runtime.reflection.lite.core.member_filter import MemberFilter
 from runtime.reflection.lite.core.member_collection import InternalMemberCollection, MemberCollection
 from runtime.reflection.lite.core.member_info import MemberInfo
 from runtime.reflection.lite.core.undefined import Undefined
@@ -32,7 +35,7 @@ from runtime.reflection.lite.core.attributes import (
     TEXT_SIGNATURE, MODULE, FILE, ANNOTATIONS, ABSTRACT_METOD, NAME
 )
 from runtime.reflection.lite.core.types import FUNCTION_TYPES, METHOD_TYPES
-from runtime.reflection.lite.core.misc import get_annotations, get_access_mode
+from runtime.reflection.lite.core.misc import get_annotations, get_access_mode, is_special_attribute, is_delegate
 
 
 
@@ -192,6 +195,7 @@ def get_signature(
         return_type
     )
 
+@overload
 def get_members(obj: type[Any] | ModuleType | FrameType) -> MemberCollection:
     """Gets the members (functions and properties) of a class, module or frame.
 
@@ -201,14 +205,53 @@ def get_members(obj: type[Any] | ModuleType | FrameType) -> MemberCollection:
     Returns:
         MemberCollection: Returns a MemberCollection.
     """
-    # result: list[Member] = []
+    ...
+@overload
+def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter) -> MemberCollection:
+    """Gets the members (functions and properties) of a class, module or frame.
+
+    Args:
+        cls (type[Any]): The class reflected.
+        filter (MemberFilter): A filter defining which members are returned.
+
+    Returns:
+        MemberCollection: Returns a MemberCollection.
+    """
+    ...
+@overload
+def get_members(obj: type[Any] | ModuleType | FrameType, *, predicate: Callable[[MemberInfo], bool]) -> MemberCollection:
+    """Gets the members (functions and properties) of a class, module or frame.
+
+    Args:
+        cls (type[Any]): The class reflected.
+        predicate (Callable[[MemberInfo], bool]): A predicate function used to filter the members returned.
+
+    Returns:
+        MemberCollection: Returns a MemberCollection.
+    """
+    ...
+@overload
+def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter, predicate: Callable[[MemberInfo], bool]) -> MemberCollection:
+    """Gets the members (functions and properties) of a class, module or frame.
+
+    Args:
+        cls (type[Any]): The class reflected.
+        filter (MemberFilter): A filter defining which members are returned.
+        predicate (Callable[[MemberInfo], bool]): A predicate function used to filter the members returned.
+
+    Returns:
+        MemberCollection: Returns a MemberCollection.
+    """
+    ...
+def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter = MemberFilter.DEFAULT, predicate: Callable[[MemberInfo], bool] | None = None) -> MemberCollection:
     result = InternalMemberCollection()
 
-    members = dir(obj)
+    members = set(dir(obj))
     cls_dict = getattr(obj, DICT)
     annotations = get_annotations(obj)
     inherited_annotations: dict[str, str | type[Any]] = {}
     bases: set[type[Any]] = set()
+    members = members.union(set(annotations.keys()))
 
     if isinstance(obj, type):
         bases = set(getattr(obj, MRO)[1:])
@@ -220,21 +263,40 @@ def get_members(obj: type[Any] | ModuleType | FrameType) -> MemberCollection:
 
     globals: dict[str, Any] | None = getattr(obj, GLOBALS) if hasattr(obj, GLOBALS) else None
     builtins: dict[str, Any] | None = getattr(obj, BUILTINS) if hasattr(obj, BUILTINS) else None
-    locals: dict[str, Any] | None = None
+    locals: dict[str, Any] = {}
 
-    if frame := get_frame(obj, stack()[1:], obj): # pragma: no cover
-        locals = frame.f_locals
+    def fn_resolve_annotation(member: str) -> Any:
+        if member in annotations and ( annotation_val := annotations[member] ):
+            if isinstance(annotation_val, str):
+                try:
+                    if frame := get_frame(obj, stack()[2:], obj): # pragma: no cover
+                        locals.update(frame.f_locals)
+                    resolved = resolve(annotation_val, globals=globals, builtins=builtins, locals=locals)
+                except: # pragma: no cover
+                    resolved = Undefined
+
+                annotations[member] = resolved
+                return resolved
+            else:
+                return annotation_val
 
 
     for member in members:
         parent = obj
+        member_info: MemberInfo | None = None
         member_name, access_mode = get_access_mode(parent, member)
-        member_class: type[Member] | None = None
-        member_type: MemberType | None = None
         member_obj: Member | DeferredReflection[Member] | None = None
+        is_special = is_special_attribute(member)
         value: Any | None = None
         attribute_value: Any | None = None
-        annotation: type[Any] = Undefined
+        attribute_base_value: Any | None = None
+
+        if access_mode == AccessMode.PRIVATE and filter & MemberFilter.PRIVATE != MemberFilter.PRIVATE:
+            continue
+        elif access_mode == AccessMode.PROTECTED and filter & MemberFilter.PROTECTED != MemberFilter.PROTECTED:
+            continue
+        elif is_special and filter & MemberFilter.SPECIAL != MemberFilter.SPECIAL:
+            continue
 
         if member in annotations and ( annotation_val := annotations[member] ):
             if isinstance(annotation_val, str):
@@ -249,20 +311,25 @@ def get_members(obj: type[Any] | ModuleType | FrameType) -> MemberCollection:
             value = getattr(obj, member)
             if member in cls_dict:
                 attribute_value = cls_dict[member]
+                attribute_base_value = attribute_value
             elif isinstance(obj, type):
                 for base_cls in bases:
                     basecls_dict = getattr(base_cls, DICT)
                     if member in basecls_dict:
                         parent = base_cls
+                        attribute_base_value = basecls_dict[member]
                         break
                 pass # pragma: no cover
             else:
                 pass # pragma: no cover
+        elif member in annotations:
+            pass
         else:
             continue # pragma: no cover
 
-
         if isinstance(value, (*FUNCTION_TYPES, *METHOD_TYPES)):
+            if filter & MemberFilter.FUNCTIONS_AND_METHODS != MemberFilter.FUNCTIONS_AND_METHODS:
+                continue # pragma: no cover
             try:
                 static_value = getattr_static(parent, member)
                 signature = get_signature(value, parent, globals=globals, builtins=builtins, locals=locals)
@@ -272,97 +339,127 @@ def get_members(obj: type[Any] | ModuleType | FrameType) -> MemberCollection:
                     self_value = getattr(value, SELF) if hasattr(value, SELF)  else None
 
                     if member == INIT:
-                        member_class = Constructor
-                        member_type = MemberType.CONSTRUCTOR
-                        member_obj = Constructor(parent, signature)
+                        member_info = MemberInfo(member_name, member, Constructor, MemberType.METHOD, access_mode, parent is not obj, obj)
+                        if not predicate or predicate(member_info):
+                            member_obj = Constructor(parent, signature, value)
+                        else:
+                            pass # pragma: no cover
                     elif static_value and isinstance(static_value, classmethod) or self_value and is_type(self_value):
-                        member_class = Method
-                        member_type = MemberType.METHOD
-                        member_obj = Method(MemberType.METHOD, FunctionKind.CLASS_METHOD, parent, signature, is_abstract)
+                        member_info = MemberInfo(member_name, member, Method, MemberType.METHOD, access_mode, parent is not obj, obj)
+                        if not predicate or predicate(member_info):
+                            member_obj = Method(MemberType.METHOD, FunctionKind.CLASS_METHOD, parent, signature, is_abstract, value)
+                        else:
+                            pass # pragma: no cover
                     elif isinstance(static_value, staticmethod):
-                        member_class = Method
-                        member_type = MemberType.METHOD
-                        member_obj = Method(MemberType.METHOD, FunctionKind.STATIC_METHOD, parent, signature, is_abstract)
+                        member_info = MemberInfo(member_name, member, Method, MemberType.METHOD, access_mode, parent is not obj, obj)
+                        if not predicate or predicate(member_info):
+                            member_obj = Method(MemberType.METHOD, FunctionKind.STATIC_METHOD, parent, signature, is_abstract, value)
+                        else:
+                            pass # pragma: no cover
                     else:
-                        member_class = Method
-                        member_type = MemberType.METHOD
-                        member_obj = Method(MemberType.METHOD, FunctionKind.METHOD, parent, signature, is_abstract)
+                        member_info = MemberInfo(member_name, member, Method, MemberType.METHOD, access_mode, parent is not obj, obj)
+                        if not predicate or predicate(member_info):
+                            member_obj = Method(MemberType.METHOD, FunctionKind.METHOD, parent, signature, is_abstract, value)
+                        else:
+                            pass # pragma: no cover
                 else:
-                    member_class = Function
-                    member_type = MemberType.FUNCTION
-                    member_obj = Function(MemberType.FUNCTION, FunctionKind.FUNCTION, signature)
+                    member_info = MemberInfo(member_name, member, Function, MemberType.FUNCTION, access_mode, parent is not obj, obj)
+                    if not predicate or predicate(member_info):
+                        member_obj = Function(MemberType.FUNCTION, FunctionKind.FUNCTION, signature, value)
+                    else:
+                        pass # pragma: no cover
 
             except ValueError as _ex:
                 pass
             except Exception as _ex:
                 pass
         elif isinstance(value, property) and isinstance(parent, type):
-            member_class = Property
-            member_type = MemberType.PROPERTY
-            is_abstract = cast(bool, getattr(value, ABSTRACT_METOD)) if hasattr(value, ABSTRACT_METOD) else False
-            getter = get_signature(cast(FunctionType, value.fget), parent, globals=globals, builtins=builtins, locals=locals)
-            setter = get_signature(value.fset, parent, globals=globals, builtins=builtins, locals=locals) if value.fset else None
-            deleter = get_signature(value.fdel, parent, globals=globals, builtins=builtins, locals=locals) if value.fdel else None
-            member_obj = Property(parent, getter, setter, deleter, is_abstract)
+            if filter & MemberFilter.PROPERTIES != MemberFilter.PROPERTIES:
+                continue # pragma: no cover
+            member_info = MemberInfo(member_name, member, Property, MemberType.PROPERTY, access_mode, parent is not obj, obj)
+            if not predicate or predicate(member_info):
+                is_abstract = cast(bool, getattr(value, ABSTRACT_METOD)) if hasattr(value, ABSTRACT_METOD) else False
+                getter = get_signature(cast(FunctionType, value.fget), parent, globals=globals, builtins=builtins, locals=locals)
+                setter = get_signature(value.fset, parent, globals=globals, builtins=builtins, locals=locals) if value.fset else None
+                deleter = get_signature(value.fdel, parent, globals=globals, builtins=builtins, locals=locals) if value.fdel else None
+                member_obj = Property(parent, getter, setter, deleter, is_abstract, value)
+            else:
+                pass # pragma: no cover
 
         elif isinstance(value, type) and value is not object and value != obj and member != CLASS and getattr(value, NAME) == member:
-            member_class = Class
-            member_type = MemberType.CLASS
-
-            def defer_resolve_class(value: type[Any]) -> DeferredReflection[Class]:
-                class Resolve:
-                    resolved: Class | None = None
-                    def __call__(self) -> Class:
-                        if not self.resolved:
-                            members = get_members(value)
-                            cls_bases = set(getattr(value, MRO)[1:])
-                            self.resolved = Class(
-                                getattr(value, NAME),
-                                cls_bases,
-                                members
-                            )
-                        return self.resolved
-                return Resolve()
-            member_obj = defer_resolve_class(value)
+            if filter & MemberFilter.CLASSES != MemberFilter.CLASSES:
+                continue # pragma: no cover
+            member_info = MemberInfo(member_name, member, Class, MemberType.CLASS, access_mode, parent is not obj, obj)
+            if not predicate or predicate(member_info):
+                def defer_resolve_class(value: type[Any]) -> DeferredReflection[Class]:
+                    class Resolve:
+                        resolved: Class | None = None
+                        def __call__(self) -> Class:
+                            if not self.resolved:
+                                members = get_members(value)
+                                cls_bases = set(getattr(value, MRO)[1:])
+                                self.resolved = Class(
+                                    getattr(value, NAME),
+                                    cls_bases,
+                                    members,
+                                    value
+                                )
+                            return self.resolved
+                    return Resolve()
+                member_obj = defer_resolve_class(value)
+            else:
+                pass # pragma: no cover
         elif isinstance(value, ModuleType):
-            member_class = Module
-            member_type = MemberType.MODULE
-            def defer_resolve_module(value: ModuleType) -> DeferredReflection[Module]:
-                class Resolve:
-                    resolved: Module | None = None
-                    def __call__(self) -> Module:
-                        if not self.resolved:
-                            members = get_members(value)
-                            self.resolved = Module(
-                                getattr(value, NAME),
-                                members
-                            )
-                        return self.resolved
-                return Resolve()
-            member_obj = defer_resolve_module(value)
-        elif attribute_value != None and hasattr(attribute_value, GET):
-            # member_class = Delegate
-            # member_type = MemberType.DELEGATE
-            pass # delegates
+            if filter & MemberFilter.MODULES != MemberFilter.MODULES:
+                continue # pragma: no cover
+            member_info = MemberInfo(member_name, member, Module, MemberType.MODULE, access_mode, parent is not obj, obj)
+            if not predicate or predicate(member_info):
+                def defer_resolve_module(value: ModuleType) -> DeferredReflection[Module]:
+                    class Resolve:
+                        resolved: Module | None = None
+                        def __call__(self) -> Module:
+                            if not self.resolved:
+                                members = get_members(value)
+                                self.resolved = Module(
+                                    getattr(value, NAME),
+                                    members,
+                                    value
+                                )
+                            return self.resolved
+                    return Resolve()
+                member_obj = defer_resolve_module(value)
+            else:
+                pass # pragma: no cover
+        elif isinstance(parent, type) and attribute_base_value != None and is_delegate(attribute_base_value):
+            if filter & MemberFilter.DELEGATES != MemberFilter.DELEGATES:
+                continue # pragma: no cover
+            member_info = MemberInfo(member_name, member, Delegate, MemberType.DELEGATE, access_mode, parent is not obj, obj)
+            if not predicate or predicate(member_info):
+                annotation = fn_resolve_annotation(member)
+                member_obj = Delegate(annotation or cast(type[Any], type(value) if value else Undefined), parent, value)
+            else:
+                pass # pragma: no cover
+            pass
         elif isinstance(parent, type):
-            member_class = Field
-            member_type = MemberType.FIELD
-            member_obj = Field(annotation or cast(type[Any], type(value) if value else Undefined))
+            if filter & MemberFilter.FIELDS_AND_VARIABLES != MemberFilter.FIELDS_AND_VARIABLES:
+                continue # pragma: no cover
+            member_info = MemberInfo(member_name, member, Field, MemberType.FIELD, access_mode, parent is not obj, obj)
+            if not predicate or predicate(member_info):
+                annotation = fn_resolve_annotation(member)
+                member_obj = Field(annotation or cast(type[Any], type(value) if value else Undefined), parent)
+            else:
+                pass # pragma: no cover
         else:
-            member_class = Variable
-            member_type = MemberType.VARIABLE
-            member_obj = Variable(annotation or cast(type[Any], type(value) if value else Undefined))
+            if filter & MemberFilter.FIELDS_AND_VARIABLES != MemberFilter.FIELDS_AND_VARIABLES:
+                continue # pragma: no cover
+            member_info = MemberInfo(member_name, member, Variable, MemberType.VARIABLE, access_mode, parent is not obj, obj)
+            if not predicate or predicate(member_info):
+                annotation = fn_resolve_annotation(member)
+                member_obj = Variable(annotation or cast(type[Any], type(value) if value else Undefined))
+            else:
+                pass # pragma: no cover
 
-        if member_obj and member_class and member_type:
-            info = MemberInfo(
-                member_name,
-                member,
-                member_class,
-                member_type,
-                access_mode,
-                parent is not obj,
-                obj
-            )
-            result.append(member_name, info, member_obj)
+        if member_obj and member_info:
+            result.append(member_name, member_info, member_obj)
 
     return result.complete()

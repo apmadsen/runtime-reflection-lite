@@ -11,6 +11,6 @@ The `Member` class represents a member of a class, module or frame.
 
 ## Properties
 
-### member_type -> _MemberType_
+### member_type -> _[MemberType](member_type.md)_
 
 The member type.

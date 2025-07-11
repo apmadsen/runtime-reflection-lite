@@ -5,7 +5,7 @@ from runtime.reflection.lite.core.member import Member
 from runtime.reflection.lite.core.member_type import MemberType
 
 class Property(Member):
-    __slots__ = [ "__getter", "__setter", "__deleter", "__abstract", "__bound_cls" ]
+    __slots__ = [ "__getter", "__setter", "__deleter", "__abstract", "__bound_cls", "__reflected" ]
 
     def __init__(
         self,
@@ -13,7 +13,8 @@ class Property(Member):
         getter: Signature,
         setter: Signature | None,
         deleter: Signature | None,
-        abstract: bool
+        abstract: bool,
+        reflected: property
     ):
         super().__init__(MemberType.PROPERTY)
         self.__getter = getter
@@ -21,6 +22,7 @@ class Property(Member):
         self.__deleter = deleter
         self.__abstract = abstract
         self.__bound_cls = bound_cls
+        self.__reflected = reflected
 
     @property
     def bound_cls(self) -> type[Any]:
@@ -63,3 +65,9 @@ class Property(Member):
         """Indicates if property is readonly or not (i.e. has a setter).
         """
         return self.__setter is None
+
+    @property
+    def reflected(self) -> property:
+        """The property reflected.
+        """
+        return self.__reflected

@@ -5,12 +5,12 @@
     [lite](/docs/0.1/runtime/reflection/lite/module.md) >
      MemberCollectionSubset
 
-# MemberCollectionSubset : Iterable[tuple[MemberInfo, T]]
+# MemberCollectionSubset : Iterable[tuple[[MemberInfo](member_info.md), T]]
 
 The `MemberCollectionSubset` class is a collection of members created as a subset of an ordinary `MemberCollection`.
 
 ## Functions
 
-### subset(predicate: _Callable[[MemberInfo], bool]) -> _MemberCollectionSubset[T]_:
+### subset(predicate: _Callable[[[MemberInfo](member_info.md)], bool]) -> _MemberCollectionSubset[T]_:
 
 Creates a subsets from the subset using a predicate function.

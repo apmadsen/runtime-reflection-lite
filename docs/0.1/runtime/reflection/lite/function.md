@@ -11,7 +11,7 @@ The `Function` class represents a function.
 
 ## Properties
 
-### kind -> _ParameterKind_
+### kind -> _[ParameterKind](parameter_kind.md)_
 
 The function kind.
 
@@ -19,6 +19,10 @@ The function kind.
 
 The function return type.
 
-### signature -> _Signature_
+### signature -> _[Signature](signature.md)_
 
 The function signature.
+
+### reflected -> _ReferenceType[Callable]_
+
+The reflected function (a weak reference)

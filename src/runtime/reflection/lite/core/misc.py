@@ -1,8 +1,10 @@
 from typing import Any
 from types import ModuleType, FrameType
+from typingutils import is_type
 
 from runtime.reflection.lite.core.access_mode import AccessMode
-from runtime.reflection.lite.core.attributes import ANNOTATIONS
+from runtime.reflection.lite.core.attributes import ANNOTATIONS, GET
+from runtime.reflection.lite.core.types import FUNCTION_TYPES, METHOD_TYPES
 
 
 def is_special_attribute(attr: str) -> bool:
@@ -13,6 +15,23 @@ def is_protected_attribute(attr: str) -> bool:
 
 def is_private_attribute(attr: str) -> bool:
     return attr.startswith("__") and not attr.endswith("__")
+
+def is_delegate(value: Any) -> bool:
+    if hasattr(value, GET) and ( attr_get := getattr(value, GET) ):
+        if isinstance(attr_get, (FUNCTION_TYPES, METHOD_TYPES)):
+            from runtime.reflection.lite.core import get_signature
+            sig = get_signature(attr_get)
+            if len(sig.parameters) == 2:
+                if sig.parameters[1].parameter_type and is_type(sig.parameters[1].parameter_type):
+                    return  True
+                elif not sig.parameters[0].parameter_type and not sig.parameters[1].parameter_type and sig.parameters[0].name == "instance" and sig.parameters[1].name == "owner":
+                    return True
+                else:
+                    pass # pragma: no cover
+            else:
+                pass # pragma: no cover
+
+    return False
 
 def get_access_mode(parent: type | ModuleType | FrameType | None, name: str) -> tuple[str, AccessMode]:
     if parent and isinstance(parent, (type, ModuleType)) and name.startswith(f"_{parent.__name__}__"):

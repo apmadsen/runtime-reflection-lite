@@ -4,6 +4,7 @@ from runtime.reflection.lite.core.signature import Signature
 from runtime.reflection.lite.core.function import Function
 from runtime.reflection.lite.core.function_kind import FunctionKind
 from runtime.reflection.lite.core.member_type import MemberType
+from runtime.reflection.lite.core.types import FUNCTION_AND_METHOD_TYPES
 
 class Method(Function):
     __slots__ = [ "__abstract", "__bound_cls" ]
@@ -14,9 +15,10 @@ class Method(Function):
         kind: FunctionKind,
         bound_cls: type[Any],
         signature: Signature,
-        abstract: bool
+        abstract: bool,
+        reflected: FUNCTION_AND_METHOD_TYPES
     ):
-        super().__init__(member_type, kind, signature)
+        super().__init__(member_type, kind, signature, reflected)
         self.__abstract = abstract
         self.__bound_cls = bound_cls
 

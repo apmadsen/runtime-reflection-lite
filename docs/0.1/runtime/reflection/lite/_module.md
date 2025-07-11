@@ -15,22 +15,22 @@ The `Module` class represents a module.
 
 The module name.
 
-### members -> _MemberCollection_
+### members -> _[MemberCollection](member_collection.md)_
 
 The module members.
 
-### classes -> _MemberCollectionSubset[Class]_
+### classes -> _[MemberCollectionSubset](member_collection_subset.md)[[Class](class.md)]_
 
 The modules classes.
 
-### functions -> _MemberCollectionSubset[Function]_
+### functions -> _[MemberCollectionSubset](member_collection_subset.md)[[Function](function.md)]_
 
 The modules functions.
 
-### modules -> _MemberCollectionSubset[Module]_
+### modules -> _[MemberCollectionSubset](member_collection_subset.md)[Module]_
 
 The modules imported modules.
 
-### variables -> _MemberCollectionSubset[Variable]_
+### variables -> _[MemberCollectionSubset](member_collection_subset.md)[[Variable](variable.md)]_
 
 The modules variables.

@@ -5,9 +5,15 @@
     [lite](/docs/0.1/runtime/reflection/lite/module.md) >
      get_signature
 
-# get_signature(fn: _AnyFunction_) -> _Signature_
+# get_signature(fn: _AnyFunction_) -> _[Signature](signature.md)_
 
-# get_signature(fn: _AnyFunction_, parent: _type[Any] | ModuleType | FrameType_) -> _Signature_
+The `get_signature` function gets the signature of the specified function. For edge cases, it may be necessary to include the _parent_ parameter.
+
+## Parameters
+
+- fn `AnyFunction`: The function to reflect upon.
+
+# get_signature(fn: _AnyFunction_, parent: _type[Any] | ModuleType | FrameType_) -> _[Signature](signature.md)_
 
 The `get_signature` function gets the signature of the specified function. For edge cases, it may be necessary to include the _parent_ parameter.
 

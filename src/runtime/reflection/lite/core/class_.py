@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Any
+from weakref import ref, ReferenceType
 
 from runtime.reflection.lite.core.member import Member
 from runtime.reflection.lite.core.member_collection import MemberCollection, MemberCollectionSubset
@@ -10,18 +11,20 @@ from runtime.reflection.lite.core.property_ import Property
 from runtime.reflection.lite.core.field import Field
 
 class Class(Member):
-    __slots__ = [ "__name", "__bases", "__members", "__constructor", "__classes", "__methods", "__properties", "__fields", "__delegates" ]
+    __slots__ = [ "__name", "__bases", "__members", "__constructor", "__classes", "__methods", "__properties", "__fields", "__delegates", "__reflected" ]
 
     def __init__(
         self,
         name: str,
         bases: set[type[Any]],
-        members: MemberCollection
+        members: MemberCollection,
+        reflected: type[Any]
     ):
         super().__init__(MemberType.CLASS)
         self.__name = name
         self.__bases = bases
         self.__members = members
+        self.__reflected = ref(reflected)
         self.__constructor: Constructor | None = None
         self.__classes: MemberCollectionSubset[Class] | None = None
         self.__methods: MemberCollectionSubset[Method] | None = None
@@ -46,6 +49,12 @@ class Class(Member):
         """The class members.
         """
         return self.__members
+
+    @property
+    def reflected(self) -> ReferenceType[type[Any]]:
+        """The type reflected (weak reference).
+        """
+        return self.__reflected
 
     @property
     def constructor(self) -> Constructor:

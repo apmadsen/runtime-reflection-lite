@@ -10,6 +10,7 @@
 
 ### [AccessMode](access_mode.md)
 ### [Class](class.md)
+### [Delegate](delegate.md)
 ### [Field](field.md)
 ### [Function](function.md)
 ### [FunctionKind](function_kind.md)
@@ -17,6 +18,7 @@
 ### [MemberInfo](member_info.md)
 ### [MemberCollection](member_collection.md)
 ### [MemberCollectionSubset](member_collection_subset.md)
+### [MemberFilter](member_filter.md)
 ### [MemberType](member_type.md)
 ### [Module](_module.md)
 ### [Method](method.md)
@@ -34,4 +36,4 @@
 ### [get_constructor](get_constructor.md)
 ### [get_signature](get_signature.md)
 ### [get_members](get_members.md)
-### [reflect_function](reflect_function.md)
+### [reflect_function](reflect_function.md) _DEPRECATED_

@@ -7,7 +7,8 @@ readme = "README.md"
 authors = [
     { name = "Anders Madsen", email = "anders.madsen@alphavue.com" }
 ]
-license = { text = "MIT" }
+license = "MIT"
+license-files = [ "LICENSE"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Development Status :: 6 - Mature",
@@ -27,7 +28,7 @@ classifiers = [
     "Typing :: Typed"
 ]
 dependencies = [
-    "typing-utilities >= 0.0.3, < 0.1",
+    "typing-utilities >= 0.0.4, < 0.1",
     "deprecated >= 1.2, < 1.3"
 ]
 requires-python = ">=3.10"

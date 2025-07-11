@@ -1,6 +1,5 @@
 from typing import Any
 
-
 from runtime.reflection.lite.core.member import Member
 from runtime.reflection.lite.core.member_type import MemberType
 

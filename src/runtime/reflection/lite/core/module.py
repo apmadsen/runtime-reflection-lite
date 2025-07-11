@@ -1,4 +1,6 @@
 from __future__ import annotations
+from types import ModuleType
+from weakref import ref, ReferenceType
 
 from runtime.reflection.lite.core.member import Member
 from runtime.reflection.lite.core.member_collection import MemberCollection, MemberCollectionSubset
@@ -8,12 +10,13 @@ from runtime.reflection.lite.core.function import Function
 from runtime.reflection.lite.core.variable import Variable
 
 class Module(Member):
-    __slots__ = [ "__name", "__members", "__modules", "__classes", "__functions", "__properties", "__variables" ]
+    __slots__ = [ "__name", "__members", "__modules", "__classes", "__functions", "__properties", "__variables", "__reflected" ]
 
     def __init__(
         self,
         name: str,
-        members: MemberCollection
+        members: MemberCollection,
+        reflected: ModuleType,
     ):
         super().__init__(MemberType.MODULE)
         self.__name = name
@@ -22,6 +25,7 @@ class Module(Member):
         self.__classes: MemberCollectionSubset[Class] | None = None
         self.__functions: MemberCollectionSubset[Function] | None = None
         self.__variables: MemberCollectionSubset[Variable] | None = None
+        self.__reflected = ref(reflected)
 
     @property
     def name(self) -> str:
@@ -32,6 +36,12 @@ class Module(Member):
         """The class members
         """
         return self.__members
+
+    @property
+    def reflected(self) -> ReferenceType[ModuleType]:
+        """The module reflected (weak reference).
+        """
+        return self.__reflected
 
     @property
     def modules(self) -> MemberCollectionSubset[Module]:

@@ -19,15 +19,15 @@ The member name.
 
 The original member name (names of private class members are mangled by prefixing the class name).
 
-### member_class -> _type[Member]_
+### member_class -> _type[[Member](member.md)]_
 
 The member class.
 
-### member_type -> _MemberType_
+### member_type -> _[MemberType](member_type.md)_
 
 The member type.
 
-### access_mode -> _AccessMode_
+### access_mode -> _[AccessMode](access_mode.md)_
 
 The member access mode (or encapsulation).
 

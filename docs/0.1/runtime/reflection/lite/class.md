@@ -19,26 +19,30 @@ The class name.
 
 The class bases.
 
-### members -> _MemberCollection_
+### members -> _[MemberCollection](member_collection.md)_
 
 The class members.
 
-### constructor -> _Constructor_
+### constructor -> _[Constructor](constructor.md)_
 
 The class constructor (i.e. "__init__()" function).
 
-### classes -> _MemberCollectionSubset[Class]_
+### classes -> _[MemberCollectionSubset](member_collection_subset.md)[[Class](class.md)]_
 
 The class' nested classes.
 
-### methods -> _MemberCollectionSubset[Method]_
+### methods ->  _[MemberCollectionSubset](member_collection_subset.md)[[Method](method.md)]_
 
 The class methods.
 
-### properties -> _MemberCollectionSubset[Property]_
+### properties ->  _[MemberCollectionSubset](member_collection_subset.md)[[Property](property.md)]_
 
 The class properties.
 
-### fields -> _MemberCollectionSubset[Field]_
+### fields ->  _[MemberCollectionSubset](member_collection_subset.md)[[Field](field.md)]_
 
 The class fields.
+
+### reflected -> _ReferenceType[type[Any]]_
+
+The reflected class (a weak reference)

@@ -5,7 +5,7 @@
     [lite](/docs/0.1/runtime/reflection/lite/module.md) >
      get_constructor
 
-# get_constructor(cls: _type[Any]_) -> _Signature_
+# get_constructor(cls: _type[Any]_) -> _[Signature](signature.md)_
 
 The `get_constructor` function gets the signature of the specified class' constructor. Note that overloads aren't taken into account.
 This function returns the same signature as `get_signature(getattr(cls, "__init__"), cls)`.

@@ -339,3 +339,13 @@ def __private_function() -> None:
     ...
 
 class10 = Class10
+
+class Class11:
+    b: int = 1
+    _b: int = 2
+    __b: int = 3
+
+class Class12:
+    b: int
+    _b: int
+    __b: int

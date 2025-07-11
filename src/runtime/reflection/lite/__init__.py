@@ -1,6 +1,8 @@
 from runtime.reflection.lite.core.access_mode import AccessMode
 from runtime.reflection.lite.core.module import Module
+from runtime.reflection.lite.core.delegate import Delegate
 from runtime.reflection.lite.core.member import Member
+from runtime.reflection.lite.core.member_filter import MemberFilter
 from runtime.reflection.lite.core.member_type import MemberType
 from runtime.reflection.lite.core.member_info import MemberInfo
 from runtime.reflection.lite.core.class_ import Class
@@ -27,6 +29,7 @@ __all__ = [
     'Class',
     'Field',
     'Member',
+    'MemberFilter',
     'MemberType',
     'MemberInfo',
     'Constructor',

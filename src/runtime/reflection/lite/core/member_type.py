@@ -8,5 +8,4 @@ class MemberType(Enum):
     PROPERTY = 5
     FUNCTION = 6
     METHOD = 7
-    CONSTRUCTOR = 8
-    MODULE = 9
+    MODULE = 8

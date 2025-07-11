@@ -15,7 +15,7 @@ The `Parameter` class represents a function parameter.
 
 The parameter name.
 
-### kind -> _ParameterKind_
+### kind -> _[ParameterKind](parameter_kind.md)_
 
 The parameter kind.
 

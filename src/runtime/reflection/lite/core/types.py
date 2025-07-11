@@ -13,3 +13,4 @@ METHOD_TYPES = (
     MethodType, BuiltinMethodType, MethodWrapperType,
     MethodDescriptorType, ClassMethodDescriptorType
 )
+FUNCTION_AND_METHOD_TYPES = FunctionType | LambdaType | BuiltinFunctionType | WrapperDescriptorType | MethodType | BuiltinMethodType | MethodWrapperType | MethodDescriptorType | ClassMethodDescriptorType

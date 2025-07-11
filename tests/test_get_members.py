@@ -1,27 +1,61 @@
 # pyright: basic
 from typing import Any, List
+from types import MappingProxyType
 from pytest import raises as assert_raises
 
 from runtime.reflection.lite import (
-    ParameterKind, Undefined, Function, Constructor, Variable, Field, Class,
-    Method, Property, FunctionKind, AccessMode, MemberType, Module, get_members
+    ParameterKind, Undefined, Function, Constructor, Variable, Field, Class, Delegate,
+    Method, Property, FunctionKind, AccessMode, MemberType, Module, MemberFilter, get_members
 )
 
 
 from tests.explore import explore
-from tests.reflection_classes import Class4, Class5, Class6, Class7, Class8, Class9, Class10, AbstractClass
+from tests.reflection_classes import Class4, Class5, Class6, Class7, Class8, Class9, Class10, Class11, Class12, AbstractClass, json, public_function
+
+
+def test_get_members():
+    members = get_members(Class4, filter=MemberFilter.CLASSES | MemberFilter.FUNCTIONS_AND_METHODS | MemberFilter.PROPERTIES)
+    assert set(members.keys()).issuperset([
+        "prop", "test_method", "test_classmethod", "test_staticmethod"
+    ])
+
+    members = get_members(Class11, filter=MemberFilter.FIELDS_AND_VARIABLES)
+    assert set(members.keys()).issuperset([
+        "b"
+    ])
+
+    members = get_members(Class11, filter=MemberFilter.FIELDS_AND_VARIABLES | MemberFilter.PROTECTED)
+    assert set(members.keys()).issuperset([
+        "b", "_b"
+    ])
+
+    members = get_members(Class11, filter=MemberFilter.FIELDS_AND_VARIABLES | MemberFilter.PRIVATE)
+    assert set(members.keys()).issuperset([
+        "b", "_b", "__b"
+    ])
+
 
 def test_get_members_class4():
     members = get_members(Class4)
     assert set(members.keys()).issuperset([
-        "__prop", "prop", "test_method", "test_classmethod", "test_staticmethod"
+        "__prop", "prop", "test_method", "test_classmethod", "test_staticmethod", "__dict__"
     ])
+
+    info, member = members["__dict__"]
+    assert isinstance(member, Delegate)
+    assert info.member_class is Delegate
+    assert info.member_type == MemberType.DELEGATE
+    assert member.parent_cls is Class4
+    assert isinstance(member.reflected, MappingProxyType)
+    assert issubclass(member.delegate_type, MappingProxyType)
+
 
     info, member = members["__prop"]
     assert isinstance(member, Field)
     assert info.member_class is Field
     assert info.member_type == MemberType.FIELD
     assert info.access_mode == AccessMode.PRIVATE
+    assert member.parent_cls is Class4
     assert member.field_type == int
 
     info, member = members["prop"]
@@ -91,6 +125,7 @@ def test_get_members_class6():
 
     info, member = members["prop2"]
     assert isinstance(member, Property)
+    assert member.reflected is Class6.prop2
     assert member.setter is None
     assert member.property_type == int
 
@@ -188,6 +223,7 @@ def test_get_members_class10():
 
     info, member = members["__init__"]
     assert isinstance(member, Constructor)
+    assert info.member_type == MemberType.METHOD
     assert info.is_special
     assert info.is_inherited
     assert info.access_mode == AccessMode.PUBLIC
@@ -196,6 +232,14 @@ def test_get_members_class10():
     assert member.signature.parameters["x"].default is Undefined
     assert member.signature.parameters["x"].parameter_type == int
     assert member.return_type == Undefined
+
+def test_get_members_class12():
+    members = get_members(Class12)
+
+    assert set(members.keys()).issuperset([
+        "b", "_b", "__b"
+    ])
+
 
 def test_get_members_abstractclass():
     members = get_members(AbstractClass)
@@ -247,11 +291,13 @@ def test_get_members_module():
 
     info, member = members["json"]
     assert isinstance(member, Module)
+    assert member.reflected() is json
     assert info.member_class is Module
     assert member.members["loads"] == member.functions["loads"]
 
     info, member = members["Class5"]
     assert isinstance(member, Class)
+    assert member.reflected() is Class5
     assert object in member.bases
     assert member.name == "Class5"
     assert member.constructor is member.members["__init__"][1]
@@ -259,7 +305,7 @@ def test_get_members_module():
     assert member.methods["test"][1] is member.members["test"][1]
     assert member.properties["prop1"][1] is member.members["prop1"][1]
     assert member.fields["field1"][1] is member.members["field1"][1]
-    assert "field2" not in member.fields
+    assert "field2" in member.fields # field without value
     assert member.constructor.bound_cls is Class5
 
     info, member = members["Class10"]
@@ -291,6 +337,7 @@ def test_get_members_module():
 
     info, member = members["public_function"]
     assert isinstance(member, Function)
+    assert member.reflected() is public_function
     assert member.kind == FunctionKind.FUNCTION
     assert len(member.signature.parameters) == 0
     assert member.return_type == None

@@ -5,7 +5,7 @@
     [lite](/docs/0.1/runtime/reflection/lite/module.md) >
      reflect_function
 
-# reflect_function(fn: _AnyFunction_, cls: _object | None_ = _None_) -> _Signature_
+# reflect_function(fn: _AnyFunction_, cls: _object | None_ = _None_) -> _[Signature](signature.md)_
 
 > DEPRECATED SINCE VERSION 0.1.0. USE [get_signature](get_signature.md) INSTEAD...
 

@@ -19,15 +19,15 @@ The propertys bound class.
 
 The property type.
 
-### getter -> _Signature_
+### getter -> _[Signature](signature.md)_
 
 The signature of the property getter.
 
-### setter -> _Signature | None_
+### setter -> _[Signature](signature.md) | None_
 
 The signature of the property setter (if any).
 
-### deleter -> _Signature | None_
+### deleter -> _[Signature](signature.md) | None_
 
 The signature of the property deleter (if any).
 
@@ -38,3 +38,7 @@ Indicates if property is readonly or not (i.e. has a setter).
 ### is_abstract -> _bool_
 
 Indicates if property is abstract.
+
+### reflected -> _property_
+
+The reflected function (not a weak reference because the property object does not support this)

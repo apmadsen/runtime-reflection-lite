@@ -31,9 +31,9 @@ def test_members_collection():
 
 def test_example():
     import runtime.reflection.lite
-    from runtime.reflection.lite import get_members
+    from runtime.reflection.lite import MemberFilter, get_members
 
-    members = get_members(runtime.reflection.lite)
+    members = get_members(runtime.reflection.lite, filter = MemberFilter.CLASSES | MemberFilter.FUNCTIONS_AND_METHODS)
     functions = members.subset_functions()
     classes = members.subset_classes()
 

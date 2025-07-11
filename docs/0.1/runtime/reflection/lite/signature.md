@@ -11,7 +11,7 @@ The `Signature` class represents the reflection of a function.
 
 ## Properties
 
-### parameters -> _ParameterMapper_
+### parameters -> _[ParameterMapper](parameter_mapper.md)_
 
 The functions' parameters.
 

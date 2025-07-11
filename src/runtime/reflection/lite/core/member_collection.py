@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Callable, ItemsView, Iterable, Iterator, Mapping, Generic, TypeVar, Any, cast, overload, TYPE_CHECKING
+from typing import Callable, ItemsView, Iterable, Iterator, Mapping, Generic, TypeVar, cast, overload, TYPE_CHECKING
 from collections.abc import ItemsView, ValuesView, KeysView
 
 from runtime.reflection.lite.core.member import Member
@@ -182,10 +182,9 @@ class MemberCollection(Mapping[str, tuple[MemberInfo, Member]]):
     def __contains__(self, obj: object) -> bool:
         return self.__src.__contains__(obj)
 
-    def __iter__(self) -> Iterator[Any]:
+    def __iter__(self) -> Iterator[str]:
         index: Mapping[str, Member] = getattr(self.__src, "_InternalMemberCollection__index")
-        for member in index:
-            yield self[member]
+        yield from index
 
     def __len__(self) -> int:
         return self.__src.__len__()

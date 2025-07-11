@@ -14,3 +14,7 @@ The `Field` class represents a class field.
 ### field_type -> _type[Any] | None_
 
 The fields type annotation or inferred type.
+
+### parent_cls -> _type[Any]_
+
+The class on which the field is defined.
