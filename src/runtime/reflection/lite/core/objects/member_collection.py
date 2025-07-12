@@ -2,18 +2,18 @@ from __future__ import annotations
 from typing import Callable, ItemsView, Iterable, Iterator, Mapping, Generic, TypeVar, cast, overload, TYPE_CHECKING
 from collections.abc import ItemsView, ValuesView, KeysView
 
-from runtime.reflection.lite.core.member import Member
-from runtime.reflection.lite.core.member_info import MemberInfo
-from runtime.reflection.lite.core.deferred_reflection import DeferredReflection
-from runtime.reflection.lite.core.function import Function
-from runtime.reflection.lite.core.method import Method
-from runtime.reflection.lite.core.property_ import Property
-from runtime.reflection.lite.core.field import Field
-from runtime.reflection.lite.core.variable import Variable
+from runtime.reflection.lite.core.objects.member import Member
+from runtime.reflection.lite.core.objects.member_info import MemberInfo
+from runtime.reflection.lite.core.objects.deferred_reflection import DeferredReflection
+from runtime.reflection.lite.core.objects.function import Function
+from runtime.reflection.lite.core.objects.method import Method
+from runtime.reflection.lite.core.objects.property_ import Property
+from runtime.reflection.lite.core.objects.field import Field
+from runtime.reflection.lite.core.objects.variable import Variable
 
 if TYPE_CHECKING:
-    from runtime.reflection.lite.core.class_ import Class
-    from runtime.reflection.lite.core.module import Module
+    from runtime.reflection.lite.core.objects.class_ import Class
+    from runtime.reflection.lite.core.objects.module import Module
 
 T = TypeVar("T", bound=Member)
 
@@ -152,11 +152,11 @@ class MemberCollection(Mapping[str, tuple[MemberInfo, Member]]):
         return MemberCollectionSubset[T](src)
 
     def subset_modules(self) -> MemberCollectionSubset[Module]:
-        from runtime.reflection.lite.core.module import Module
+        from runtime.reflection.lite.core.objects.module import Module
         return self.subset(Module)
 
     def subset_classes(self) -> MemberCollectionSubset[Class]:
-        from runtime.reflection.lite.core.class_ import Class
+        from runtime.reflection.lite.core.objects.class_ import Class
         return self.subset(Class)
 
     def subset_methods(self) -> MemberCollectionSubset[Method]:

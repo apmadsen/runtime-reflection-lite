@@ -1,8 +1,8 @@
 from typing import Any
 
-from runtime.reflection.lite.core.signature import Signature
-from runtime.reflection.lite.core.member import Member
-from runtime.reflection.lite.core.member_type import MemberType
+from runtime.reflection.lite.core.objects.signature import Signature
+from runtime.reflection.lite.core.objects.member import Member
+from runtime.reflection.lite.core.objects.member_type import MemberType
 
 class Property(Member):
     __slots__ = [ "__getter", "__setter", "__deleter", "__abstract", "__bound_cls", "__reflected" ]

@@ -1,96 +1,42 @@
 from typing import Any, Callable, cast, overload
 from typingutils import AnyFunction, is_type
 from types import FrameType, ModuleType, MethodType
-from sys import modules
 from types import FunctionType, MethodType
-from inspect import (
-    Parameter as InspectParameter, FrameInfo,
-    getattr_static, signature as builtin_get_signature, stack, unwrap
-)
+from inspect import Parameter as InspectParameter, getattr_static, signature as builtin_get_signature, stack, unwrap
 
-from runtime.reflection.lite.core.access_mode import AccessMode
-from runtime.reflection.lite.core.delegate import Delegate
-from runtime.reflection.lite.core.member import Member
-from runtime.reflection.lite.core.member_type import MemberType
-from runtime.reflection.lite.core.member_filter import MemberFilter
-from runtime.reflection.lite.core.member_collection import InternalMemberCollection, MemberCollection
-from runtime.reflection.lite.core.member_info import MemberInfo
-from runtime.reflection.lite.core.undefined import Undefined
-from runtime.reflection.lite.core.signature import Signature
-from runtime.reflection.lite.core.parameter import Parameter
-from runtime.reflection.lite.core.parameter_kind import ParameterKind
-from runtime.reflection.lite.core.parameter_mapper import ParameterMapper
-from runtime.reflection.lite.core.module import Module
-from runtime.reflection.lite.core.function import Function
-from runtime.reflection.lite.core.class_ import Class
-from runtime.reflection.lite.core.field import Field
-from runtime.reflection.lite.core.variable import Variable
-from runtime.reflection.lite.core.function_kind import FunctionKind
-from runtime.reflection.lite.core.method import Method
-from runtime.reflection.lite.core.constructor import Constructor
-from runtime.reflection.lite.core.property_ import Property
-from runtime.reflection.lite.core.deferred_reflection import DeferredReflection
+from runtime.reflection.lite.core.objects.access_mode import AccessMode
+from runtime.reflection.lite.core.objects.delegate import Delegate
+from runtime.reflection.lite.core.objects.member import Member
+from runtime.reflection.lite.core.objects.member_type import MemberType
+from runtime.reflection.lite.core.objects.member_filter import MemberFilter
+from runtime.reflection.lite.core.objects.member_collection import InternalMemberCollection, MemberCollection
+from runtime.reflection.lite.core.objects.member_info import MemberInfo
+from runtime.reflection.lite.core.objects.undefined import Undefined
+from runtime.reflection.lite.core.objects.signature import Signature
+from runtime.reflection.lite.core.objects.parameter import Parameter
+from runtime.reflection.lite.core.objects.parameter_kind import ParameterKind
+from runtime.reflection.lite.core.objects.parameter_mapper import ParameterMapper
+from runtime.reflection.lite.core.objects.module import Module
+from runtime.reflection.lite.core.objects.function import Function
+from runtime.reflection.lite.core.objects.class_ import Class
+from runtime.reflection.lite.core.objects.field import Field
+from runtime.reflection.lite.core.objects.variable import Variable
+from runtime.reflection.lite.core.objects.function_kind import FunctionKind
+from runtime.reflection.lite.core.objects.method import Method
+from runtime.reflection.lite.core.objects.constructor import Constructor
+from runtime.reflection.lite.core.objects.property_ import Property
+from runtime.reflection.lite.core.objects.deferred_reflection import DeferredReflection
+from runtime.reflection.lite.core.cache import Cache
 from runtime.reflection.lite.core.attributes import (
-    INIT, CLASS, DICT, GET, SELF, GLOBALS, BUILTINS, CALL, MRO,
-    TEXT_SIGNATURE, MODULE, FILE, ANNOTATIONS, ABSTRACT_METOD, NAME
+    INIT, CLASS, DICT, SELF, GLOBALS, BUILTINS, CALL,
+    TEXT_SIGNATURE, ABSTRACT_METOD, MRO, NAME
 )
 from runtime.reflection.lite.core.types import FUNCTION_TYPES, METHOD_TYPES
 from runtime.reflection.lite.core.misc import get_annotations, get_access_mode, is_special_attribute, is_delegate
+from runtime.reflection.lite.core.resolving import resolve, get_frame
 
-
-
-def resolve(
-    annotation: str,
-    globals: dict[str, Any] | None = None,
-    builtins: dict[str, Any] | None = None,
-    locals: dict[str, Any] | None = None
-) -> Any:
-    annotation = annotation.replace("'", "").replace('"', "")
-
-    if globals: # pragma: no cover
-        globals = { **globals , **(builtins or  __builtins__)}
-
-        try:
-            result = eval(annotation, globals, locals)
-            return result
-        except:
-            pass
-
-    # fallback
-    for frame in stack()[1:]: # pragma: no cover
-        if frame.filename == __file__:
-            continue
-
-        globals = { **frame.frame.f_globals , **frame.frame.f_builtins}
-        locals = frame.frame.f_locals
-
-        try:
-            return eval(annotation, globals, locals)
-        except:
-            pass
-
-    raise Exception(f"Unable to resolve {annotation}") # pragma: no cover
-
-def get_frame(
-    obj: Any,
-    stack: list[FrameInfo],
-    parent: Any | None
-) -> FrameType | None: # pragma: no cover
-    module = None
-
-    if hasattr(obj, MODULE):
-        module = modules[getattr(obj, MODULE)]
-    elif parent and hasattr(parent, MODULE):
-        module = modules[getattr(parent, MODULE)]
-
-    if module and hasattr(module, FILE):
-        for frame in stack:
-            if frame.filename == module.__file__:
-                frame_locals = frame.frame.f_locals.values()
-                if parent is not None and parent in frame_locals:
-                    return frame.frame
-                elif obj in frame_locals:
-                    return frame.frame
+MODULE_CACHE = Cache[Module]()
+CLASS_CACHE = Cache[Class]()
 
 @overload
 def get_signature(
@@ -391,22 +337,7 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
                 continue # pragma: no cover
             member_info = MemberInfo(member_name, member, Class, MemberType.CLASS, access_mode, parent is not obj, obj)
             if not predicate or predicate(member_info):
-                def defer_resolve_class(value: type[Any]) -> DeferredReflection[Class]:
-                    class Resolve:
-                        resolved: Class | None = None
-                        def __call__(self) -> Class:
-                            if not self.resolved:
-                                members = get_members(value)
-                                cls_bases = set(getattr(value, MRO)[1:])
-                                self.resolved = Class(
-                                    getattr(value, NAME),
-                                    cls_bases,
-                                    members,
-                                    value
-                                )
-                            return self.resolved
-                    return Resolve()
-                member_obj = defer_resolve_class(value)
+                member_obj = reflect_class(value)
             else:
                 pass # pragma: no cover
         elif isinstance(value, ModuleType):
@@ -414,20 +345,7 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
                 continue # pragma: no cover
             member_info = MemberInfo(member_name, member, Module, MemberType.MODULE, access_mode, parent is not obj, obj)
             if not predicate or predicate(member_info):
-                def defer_resolve_module(value: ModuleType) -> DeferredReflection[Module]:
-                    class Resolve:
-                        resolved: Module | None = None
-                        def __call__(self) -> Module:
-                            if not self.resolved:
-                                members = get_members(value)
-                                self.resolved = Module(
-                                    getattr(value, NAME),
-                                    members,
-                                    value
-                                )
-                            return self.resolved
-                    return Resolve()
-                member_obj = defer_resolve_module(value)
+                member_obj = reflect_module(value)
             else:
                 pass # pragma: no cover
         elif isinstance(parent, type) and attribute_base_value != None and is_delegate(attribute_base_value):
@@ -463,3 +381,69 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
             result.append(member_name, member_info, member_obj)
 
     return result.complete()
+
+@overload
+def reflect(obj: type[Any]) -> Class:
+    """Reflects on a class object.
+
+    Args:
+        obj (type[Any]): The class.
+
+    Returns:
+        Class: Returns a Class object.
+    """
+    ...
+@overload
+def reflect(obj: ModuleType) -> Module:
+    """Reflects on a module.
+
+    Args:
+        obj (ModuleType): The module.
+
+    Returns:
+        Class: Returns a Module object.
+    """
+    ...
+def reflect(obj: type[Any] | ModuleType) -> Class | Module:
+    if isinstance(obj, ModuleType):
+        return reflect_module(obj, MODULE_CACHE)()
+    else:
+        return reflect_class(obj, CLASS_CACHE)()
+
+def reflect_module(obj: ModuleType, cache: Cache[Module] = MODULE_CACHE) -> DeferredReflection[Module]:
+    class Resolve:
+        resolved: Module | None = None
+        def __call__(self) -> Module:
+            if not self.resolved:
+                if cached := cache.try_get(obj):
+                    self.resolved = cached
+                else:
+                    members = get_members(obj)
+                    self.resolved = Module(
+                        getattr(obj, NAME),
+                        members,
+                        obj
+                    )
+                    cache.set(obj, self.resolved)
+            return self.resolved
+    return Resolve()
+
+def reflect_class(obj: type[Any], cache: Cache[Class] = CLASS_CACHE) -> DeferredReflection[Class]:
+    class Resolve:
+        resolved: Class | None = None
+        def __call__(self) -> Class:
+            if not self.resolved:
+                if cached := cache.try_get(obj):
+                    self.resolved = cached
+                else:
+                    members = get_members(obj)
+                    cls_bases = set(getattr(obj, MRO)[1:])
+                    self.resolved = Class(
+                        getattr(obj, NAME),
+                        cls_bases,
+                        members,
+                        obj
+                    )
+                    cache.set(obj, self.resolved)
+            return self.resolved
+    return Resolve()

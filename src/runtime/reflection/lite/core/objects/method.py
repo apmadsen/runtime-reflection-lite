@@ -1,9 +1,9 @@
 from typing import Any
 
-from runtime.reflection.lite.core.signature import Signature
-from runtime.reflection.lite.core.function import Function
-from runtime.reflection.lite.core.function_kind import FunctionKind
-from runtime.reflection.lite.core.member_type import MemberType
+from runtime.reflection.lite.core.objects.signature import Signature
+from runtime.reflection.lite.core.objects.function import Function
+from runtime.reflection.lite.core.objects.function_kind import FunctionKind
+from runtime.reflection.lite.core.objects.member_type import MemberType
 from runtime.reflection.lite.core.types import FUNCTION_AND_METHOD_TYPES
 
 class Method(Function):

@@ -36,4 +36,5 @@
 ### [get_constructor](get_constructor.md)
 ### [get_signature](get_signature.md)
 ### [get_members](get_members.md)
+### [reflect](reflect.md)
 ### [reflect_function](reflect_function.md) _DEPRECATED_

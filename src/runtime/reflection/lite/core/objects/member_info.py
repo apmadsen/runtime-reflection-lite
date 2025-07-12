@@ -1,8 +1,8 @@
 from typing import Any
 from types import ModuleType, FrameType
-from runtime.reflection.lite.core.member import Member
-from runtime.reflection.lite.core.member_type import MemberType
-from runtime.reflection.lite.core.access_mode import AccessMode
+from runtime.reflection.lite.core.objects.member import Member
+from runtime.reflection.lite.core.objects.member_type import MemberType
+from runtime.reflection.lite.core.objects.access_mode import AccessMode
 from runtime.reflection.lite.core.misc import is_special_attribute
 
 class MemberInfo:

@@ -2,12 +2,12 @@ from __future__ import annotations
 from types import ModuleType
 from weakref import ref, ReferenceType
 
-from runtime.reflection.lite.core.member import Member
-from runtime.reflection.lite.core.member_collection import MemberCollection, MemberCollectionSubset
-from runtime.reflection.lite.core.member_type import MemberType
-from runtime.reflection.lite.core.class_ import Class
-from runtime.reflection.lite.core.function import Function
-from runtime.reflection.lite.core.variable import Variable
+from runtime.reflection.lite.core.objects.member import Member
+from runtime.reflection.lite.core.objects.member_collection import MemberCollection, MemberCollectionSubset
+from runtime.reflection.lite.core.objects.member_type import MemberType
+from runtime.reflection.lite.core.objects.class_ import Class
+from runtime.reflection.lite.core.objects.function import Function
+from runtime.reflection.lite.core.objects.variable import Variable
 
 class Module(Member):
     __slots__ = [ "__name", "__members", "__modules", "__classes", "__functions", "__properties", "__variables", "__reflected" ]
