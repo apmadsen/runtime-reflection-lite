@@ -1,4 +1,4 @@
-from typing import Any, Callable, cast, overload
+from typing import  Any, Callable, cast, overload
 from typingutils import AnyFunction, is_type
 from types import FrameType, ModuleType, MethodType
 from types import FunctionType, MethodType
@@ -319,16 +319,17 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
                 pass
             except Exception as _ex:
                 pass
-        elif isinstance(value, property) and isinstance(parent, type):
+        elif isinstance(attribute_base_value or value, property) and is_type(parent): # delegates may return properties, so check base value first
             if filter & MemberFilter.PROPERTIES != MemberFilter.PROPERTIES:
                 continue # pragma: no cover
+            prop = cast(property, attribute_base_value or value)
             member_info = MemberInfo(member_name, member, Property, MemberType.PROPERTY, access_mode, parent is not obj, obj)
             if not predicate or predicate(member_info):
-                is_abstract = cast(bool, getattr(value, ABSTRACT_METOD)) if hasattr(value, ABSTRACT_METOD) else False
-                getter = get_signature(cast(FunctionType, value.fget), parent, globals=globals, builtins=builtins, locals=locals)
-                setter = get_signature(value.fset, parent, globals=globals, builtins=builtins, locals=locals) if value.fset else None
-                deleter = get_signature(value.fdel, parent, globals=globals, builtins=builtins, locals=locals) if value.fdel else None
-                member_obj = Property(parent, getter, setter, deleter, is_abstract, value)
+                is_abstract = cast(bool, getattr(prop, ABSTRACT_METOD)) if hasattr(prop, ABSTRACT_METOD) else False
+                getter = get_signature(cast(FunctionType, prop.fget), parent, globals=globals, builtins=builtins, locals=locals)
+                setter = get_signature(prop.fset, parent, globals=globals, builtins=builtins, locals=locals) if prop.fset else None
+                deleter = get_signature(prop.fdel, parent, globals=globals, builtins=builtins, locals=locals) if prop.fdel else None
+                member_obj = Property(cast(type[Any], parent), getter, setter, deleter, is_abstract, prop)
             else:
                 pass # pragma: no cover
 
@@ -354,7 +355,7 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
             member_info = MemberInfo(member_name, member, Delegate, MemberType.DELEGATE, access_mode, parent is not obj, obj)
             if not predicate or predicate(member_info):
                 annotation = fn_resolve_annotation(member)
-                member_obj = Delegate(annotation or cast(type[Any], type(value) if value else Undefined), parent, value)
+                member_obj = Delegate(annotation or cast(type[Any], type(value) if value else Undefined), parent, attribute_base_value)
             else:
                 pass # pragma: no cover
             pass
