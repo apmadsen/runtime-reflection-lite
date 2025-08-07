@@ -2,8 +2,8 @@ from typing import Any, cast
 from typingutils import get_type_name
 from inspect import Parameter as InspectParameter
 
-from runtime.reflection.lite.core.undefined import Undefined
-from runtime.reflection.lite.core.parameter_kind import ParameterKind
+from runtime.reflection.lite.core.objects.undefined import Undefined
+from runtime.reflection.lite.core.objects.parameter_kind import ParameterKind
 
 class Parameter:
     """The Parameter class represents a function parameter.

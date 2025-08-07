@@ -1,4 +1,5 @@
 # pyright: basic
+# ruff: noqa
 from pytest import raises as assert_raises
 
 from runtime.reflection.lite import (

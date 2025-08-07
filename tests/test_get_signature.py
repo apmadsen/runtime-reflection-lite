@@ -1,4 +1,5 @@
 # pyright: basic
+# ruff: noqa
 from typing import Callable, ClassVar, List, Dict, Set, Tuple, TypeVar, Any, overload, cast
 from types import FunctionType, MethodType
 from os import path, makedirs

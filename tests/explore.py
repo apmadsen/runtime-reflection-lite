@@ -1,4 +1,5 @@
 # pyright: basic
+# ruff: noqa
 from typing import Sequence, Any
 from runtime.reflection.lite.core import Signature, ParameterKind, Undefined
 

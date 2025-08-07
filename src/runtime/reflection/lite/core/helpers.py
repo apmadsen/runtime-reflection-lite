@@ -3,7 +3,7 @@ from types import FrameType, ModuleType
 from typingutils import AnyFunction
 from deprecated import deprecated
 
-from runtime.reflection.lite.core.signature import Signature
+from runtime.reflection.lite.core.objects.signature import Signature
 from runtime.reflection.lite.core.attributes import INIT
 from runtime.reflection.lite.core import get_signature
 

@@ -2,7 +2,7 @@ from typing import Any
 from types import ModuleType, FrameType
 from typingutils import is_type
 
-from runtime.reflection.lite.core.access_mode import AccessMode
+from runtime.reflection.lite.core.objects.access_mode import AccessMode
 from runtime.reflection.lite.core.attributes import ANNOTATIONS, GET
 from runtime.reflection.lite.core.types import FUNCTION_TYPES, METHOD_TYPES
 

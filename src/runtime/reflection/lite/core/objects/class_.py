@@ -2,13 +2,13 @@ from __future__ import annotations
 from typing import Any
 from weakref import ref, ReferenceType
 
-from runtime.reflection.lite.core.member import Member
-from runtime.reflection.lite.core.member_collection import MemberCollection, MemberCollectionSubset
-from runtime.reflection.lite.core.member_type import MemberType
-from runtime.reflection.lite.core.constructor import Constructor
-from runtime.reflection.lite.core.method import Method
-from runtime.reflection.lite.core.property_ import Property
-from runtime.reflection.lite.core.field import Field
+from runtime.reflection.lite.core.objects.member import Member
+from runtime.reflection.lite.core.objects.member_collection import MemberCollection, MemberCollectionSubset
+from runtime.reflection.lite.core.objects.member_type import MemberType
+from runtime.reflection.lite.core.objects.constructor import Constructor
+from runtime.reflection.lite.core.objects.method import Method
+from runtime.reflection.lite.core.objects.property_ import Property
+from runtime.reflection.lite.core.objects.field import Field
 
 class Class(Member):
     __slots__ = [ "__name", "__bases", "__members", "__constructor", "__classes", "__methods", "__properties", "__fields", "__delegates", "__reflected" ]

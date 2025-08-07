@@ -1,10 +1,10 @@
 from typing import Any
 from weakref import ref, ReferenceType
 
-from runtime.reflection.lite.core.signature import Signature
-from runtime.reflection.lite.core.function_kind import FunctionKind
-from runtime.reflection.lite.core.member import Member
-from runtime.reflection.lite.core.member_type import MemberType
+from runtime.reflection.lite.core.objects.signature import Signature
+from runtime.reflection.lite.core.objects.function_kind import FunctionKind
+from runtime.reflection.lite.core.objects.member import Member
+from runtime.reflection.lite.core.objects.member_type import MemberType
 from runtime.reflection.lite.core.types import FUNCTION_AND_METHOD_TYPES
 
 

@@ -1,6 +1,7 @@
 # pyright: basic
+# ruff: noqa
 from typing import Any, List
-from types import MappingProxyType
+from types import MappingProxyType, GetSetDescriptorType
 from pytest import raises as assert_raises
 
 from runtime.reflection.lite import (
@@ -46,7 +47,7 @@ def test_get_members_class4():
     assert info.member_class is Delegate
     assert info.member_type == MemberType.DELEGATE
     assert member.parent_cls is Class4
-    assert isinstance(member.reflected, MappingProxyType)
+    assert isinstance(member.reflected, GetSetDescriptorType)
     assert issubclass(member.delegate_type, MappingProxyType)
 
 

@@ -1,7 +1,7 @@
 from typing import Any
 from typingutils import get_type_name
 
-from runtime.reflection.lite.core.parameter_mapper import ParameterMapper
+from runtime.reflection.lite.core.objects.parameter_mapper import ParameterMapper
 
 class Signature:
     """The Signature class represents the reflection of a function.

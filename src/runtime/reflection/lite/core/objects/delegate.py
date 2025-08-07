@@ -1,8 +1,8 @@
 from __future__ import annotations
 from typing import Any
 
-from runtime.reflection.lite.core.field import Member
-from runtime.reflection.lite.core.member_type import MemberType
+from runtime.reflection.lite.core.objects.field import Member
+from runtime.reflection.lite.core.objects.member_type import MemberType
 
 class Delegate(Member):
     __slots__ = ["__delegate_type", "__parent_cls", "__reflected"]
