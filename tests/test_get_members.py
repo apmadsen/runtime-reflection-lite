@@ -1,4 +1,5 @@
 # pyright: basic
+# ruff: noqa
 from typing import Any, List
 from types import MappingProxyType, GetSetDescriptorType
 from pytest import raises as assert_raises
