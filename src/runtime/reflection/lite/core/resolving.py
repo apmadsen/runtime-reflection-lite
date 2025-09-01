@@ -2,6 +2,7 @@ from typing import Any
 from types import FrameType
 from sys import modules
 from inspect import FrameInfo,  stack
+from typingutils import resolve_annotation
 
 from runtime.reflection.lite.core.attributes import MODULE, FILE
 
@@ -11,14 +12,17 @@ def resolve(
     builtins: dict[str, Any] | None = None,
     locals: dict[str, Any] | None = None
 ) -> Any:
-    annotation = annotation.replace("'", "").replace('"', "")
+    if annotation[0] in ("'", '"'):
+        annotation = annotation[1:]
+    if annotation[-1] in ("'", '"'):
+        annotation = annotation[:-1]
 
     if globals: # pragma: no cover
         globals = { **globals , **(builtins or  __builtins__)}
 
         try:
             result = eval(annotation, globals, locals)
-            return result
+            return resolve_annotation(result)
         except:
             pass
 
@@ -31,7 +35,8 @@ def resolve(
         locals = frame.frame.f_locals
 
         try:
-            return eval(annotation, globals, locals)
+            result = eval(annotation, globals, locals)
+            return resolve_annotation(result)
         except:
             pass
 

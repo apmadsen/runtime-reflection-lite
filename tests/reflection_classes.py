@@ -1,7 +1,7 @@
 # pyright: basic
 # ruff: noqa
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, List, overload
+from typing import TYPE_CHECKING, Any, List, Literal, Annotated, overload
 from abc import (
     ABC, abstractmethod,
     abstractproperty, abstractclassmethod, abstractstaticmethod # pyright: ignore[reportDeprecated]
@@ -350,3 +350,19 @@ class Class12:
     b: int
     _b: int
     __b: int
+
+class Class13:
+
+    def __init__(self, field1: Literal[1,2,3], field2: Annotated[str, "a string"]) -> None:
+        self.__field1 = field1
+        self.__field2 = field2
+
+
+    @property
+    def field1(self) -> int:
+        return self.__field1
+
+    @property
+    def field2(self) -> Annotated[str, "a string"]:
+        return self.__field2
+

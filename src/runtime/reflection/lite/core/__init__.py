@@ -1,5 +1,5 @@
 from typing import  Any, Callable, cast, overload
-from typingutils import AnyFunction, is_type
+from typingutils import AnyFunction, is_type, is_annotated_type, resolve_annotation
 from types import FrameType, ModuleType, MethodType
 from types import FunctionType, MethodType
 from inspect import Parameter as InspectParameter, getattr_static, signature as builtin_get_signature, stack, unwrap
@@ -113,19 +113,26 @@ def get_signature(
         changed = False
 
         if isinstance(parameter.annotation, str):
-            parameter_type = resolve(parameter.annotation, globals, builtins, locals)
+            parameter_type = resolve_annotation(resolve(parameter.annotation, globals, builtins, locals))
             parameter = parameter.replace(annotation = parameter_type)
             changed = True
+        else:
+            parameter_type = resolve_annotation(parameter.annotation)
+            if parameter_type is not parameter.annotation:
+                parameter = parameter.replace(annotation = parameter_type)
+                changed = True
 
         if changed:
             parameters[index] = parameter
 
+    return_type = Undefined
+
     if sig.return_annotation is InspectParameter.empty:
-        return_type = Undefined
+        pass
     elif isinstance(sig.return_annotation, str):
-        return_type = resolve(sig.return_annotation, globals, builtins, locals)
-    else:
-        return_type = sig.return_annotation
+        return_type = cast(type[Any], resolve_annotation(resolve(sig.return_annotation, globals, builtins, locals)))
+    elif is_annotated_type(sig.return_annotation) or is_type(sig.return_annotation):
+        return_type = cast(type[Any], resolve_annotation(sig.return_annotation))
 
     return Signature(
         ParameterMapper(
@@ -224,7 +231,7 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
                 annotations[member] = resolved
                 return resolved
             else:
-                return annotation_val
+                return resolve_annotation(annotation_val)
 
 
     for member in members:
@@ -247,11 +254,11 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
         if member in annotations and ( annotation_val := annotations[member] ):
             if isinstance(annotation_val, str):
                 try:
-                    annotation = resolve(annotation_val, globals=globals, builtins=builtins, locals=locals)
+                    annotation = resolve_annotation(resolve(annotation_val, globals=globals, builtins=builtins, locals=locals))
                 except: # pragma: no cover
                     annotation = Undefined
             else:
-                pass # pragma: no cover
+                annotation = resolve_annotation(annotation_val)
 
         if hasattr(obj, member):
             value = getattr(obj, member)
@@ -349,7 +356,7 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
                 member_obj = reflect_module(value)
             else:
                 pass # pragma: no cover
-        elif isinstance(parent, type) and attribute_base_value != None and is_delegate(attribute_base_value):
+        elif isinstance(parent, type) and attribute_base_value is not None and is_delegate(attribute_base_value):
             if filter & MemberFilter.DELEGATES != MemberFilter.DELEGATES:
                 continue # pragma: no cover
             member_info = MemberInfo(member_name, member, Delegate, MemberType.DELEGATE, access_mode, parent is not obj, obj)
