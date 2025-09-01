@@ -11,7 +11,7 @@ from runtime.reflection.lite import (
 
 
 from tests.explore import explore
-from tests.reflection_classes import Class4, Class5, Class6, Class7, Class8, Class9, Class10, Class11, Class12, AbstractClass, json, public_function
+from tests.reflection_classes import Class4, Class5, Class6, Class7, Class8, Class9, Class10, Class11, Class12, Class13, AbstractClass, json, public_function
 
 
 def test_reflect_class4():
@@ -32,3 +32,16 @@ def test_reflect_json():
 
     reflection1 = reflect(json)
     assert reflection1 is reflection
+
+
+
+def test_reflect_class13():
+    reflection = reflect(Class13)
+
+    assert set(reflection.members.keys()).issuperset([
+        "field1", "field2", "__init__"
+    ])
+
+    assert reflection.constructor.signature.parameters[0].parameter_type is int # org annotation is Literal[1,2,3,4] which must resolve to int
+    assert reflection.constructor.signature.parameters[1].parameter_type is str # org annotation is Annotated[str, "a string"] which must resolve to str
+    assert reflection.properties["field2"][1].property_type is str # org annotation is Annotated[str, "a string"] which must resolve to str
