@@ -1,5 +1,5 @@
-[Documentation](/docs/documentation.md) >
- [v0.1](/docs/0.1/version.md) >
+[Documentation](../../documentation.md) >
+ [v0.1](../version.md) >
   runtime
 
 # runtime module

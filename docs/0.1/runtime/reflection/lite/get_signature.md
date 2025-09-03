@@ -1,8 +1,8 @@
-[Documentation](/docs/documentation.md) >
- [v0.1](/docs/0.1/version.md) >
-  [runtime](/docs/0.1/runtime/module.md) >
-   [reflection](/docs/0.1/runtime/reflection/module.md) >
-    [lite](/docs/0.1/runtime/reflection/lite/module.md) >
+[Documentation](../../../../documentation.md) >
+ [v0.1](../../../version.md) >
+  [runtime](../../module.md) >
+   [reflection](../module.md) >
+    [lite](module.md) >
      get_signature
 
 # get_signature(fn: _AnyFunction_) -> _[Signature](signature.md)_

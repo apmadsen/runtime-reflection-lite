@@ -1,4 +1,4 @@
-[Documentation](/docs/documentation.md) >
+[Documentation](../documentation.md) >
  v0.0
 
 # Runtime Reflection (lite) version 0.0

@@ -1,8 +1,8 @@
-[Documentation](/docs/documentation.md) >
- [v0.1](/docs/0.1/version.md) >
-  [runtime](/docs/0.1/runtime/module.md) >
-   [reflection](/docs/0.1/runtime/reflection/module.md) >
-    [lite](/docs/0.1/runtime/reflection/lite/module.md) >
+[Documentation](../../../../documentation.md) >
+ [v0.1](../../../version.md) >
+  [runtime](../../module.md) >
+   [reflection](../module.md) >
+    [lite](module.md) >
      reflect_function
 
 # reflect_function(fn: _AnyFunction_, cls: _object | None_ = _None_) -> _[Signature](signature.md)_
