@@ -1,7 +1,6 @@
 from typing import  Any, Callable, cast, overload
 from typingutils import AnyFunction, is_type, is_annotated_type, resolve_annotation
-from types import FrameType, ModuleType, MethodType
-from types import FunctionType, MethodType
+from types import FrameType, ModuleType, MethodType, FunctionType
 from inspect import Parameter as InspectParameter, getattr_static, signature as builtin_get_signature, stack, unwrap
 
 from runtime.reflection.lite.core.objects.access_mode import AccessMode
@@ -29,7 +28,7 @@ from runtime.reflection.lite.core.objects.deferred_reflection import DeferredRef
 from runtime.reflection.lite.core.cache import Cache
 from runtime.reflection.lite.core.attributes import (
     INIT, CLASS, DICT, SELF, GLOBALS, BUILTINS, CALL,
-    TEXT_SIGNATURE, ABSTRACT_METOD, MRO, NAME
+    TEXT_SIGNATURE, ABSTRACT_METOD, MRO, NAME, NEW
 )
 from runtime.reflection.lite.core.types import FUNCTION_TYPES, METHOD_TYPES
 from runtime.reflection.lite.core.misc import get_annotations, get_access_mode, is_special_attribute, is_delegate
@@ -37,6 +36,7 @@ from runtime.reflection.lite.core.resolving import resolve, get_frame
 
 MODULE_CACHE = Cache[Module]()
 CLASS_CACHE = Cache[Class]()
+DEFAULT_CTOR = Signature(ParameterMapper([]), Undefined)
 
 @overload
 def get_signature(
@@ -103,7 +103,7 @@ def get_signature(
             parameters = parameters[1:]
         elif first_param in ("self", "cls") and hasattr(fn, SELF): # pragma: no cover
             parameters = parameters[1:]
-        elif first_param == "self":
+        elif first_param in ("self", "cls"):
             if hasattr(fn, CALL) and ( call := getattr(fn, CALL) ): # pragma: no cover
                 if hasattr(call, TEXT_SIGNATURE) and ( text_sig := getattr(call, TEXT_SIGNATURE) ):
                     if cast(str, text_sig).startswith("($self"):
@@ -225,7 +225,7 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
                     if frame := get_frame(obj, stack()[2:], obj): # pragma: no cover
                         locals.update(frame.f_locals)
                     resolved = resolve(annotation_val, globals=globals, builtins=builtins, locals=locals)
-                except: # pragma: no cover
+                except: # pragma: no cover # noqa: E722
                     resolved = Undefined
 
                 annotations[member] = resolved
@@ -233,6 +233,17 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
             else:
                 return resolve_annotation(annotation_val)
 
+
+    attrs: dict[str, Any] = {
+        member: getattr(obj, member)
+        for member in members
+        if hasattr(obj, member)
+    }
+
+    applicable_constructor = INIT
+
+    if NEW in attrs and attrs[NEW] is not object.__new__:
+        applicable_constructor = NEW
 
     for member in members:
         parent = obj
@@ -255,13 +266,14 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
             if isinstance(annotation_val, str):
                 try:
                     annotation = resolve_annotation(resolve(annotation_val, globals=globals, builtins=builtins, locals=locals))
-                except: # pragma: no cover
+                except: # pragma: no cover # noqa: E722
                     annotation = Undefined
             else:
                 annotation = resolve_annotation(annotation_val)
 
-        if hasattr(obj, member):
-            value = getattr(obj, member)
+        if member in attrs:
+            value = attrs[member]
+
             if member in cls_dict:
                 attribute_value = cls_dict[member]
                 attribute_base_value = attribute_value
@@ -291,41 +303,48 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
                 if isinstance(parent, type):
                     self_value = getattr(value, SELF) if hasattr(value, SELF)  else None
 
-                    if member == INIT:
+                    if member == INIT and member == applicable_constructor:
                         member_info = MemberInfo(member_name, member, Constructor, MemberType.METHOD, access_mode, parent is not obj, obj)
                         if not predicate or predicate(member_info):
-                            member_obj = Constructor(parent, signature, value)
+                            if value is object.__init__:
+                                signature = DEFAULT_CTOR
+                            member_obj = Constructor(member_name, parent, signature, value)
+                        else:
+                            pass # pragma: no cover
+                    elif member == NEW and member == applicable_constructor:
+                        member_info = MemberInfo(member_name, member, Constructor, MemberType.METHOD, access_mode, parent is not obj, obj)
+                        if not predicate or predicate(member_info):
+                            member_obj = Constructor(member_name, parent, signature, value)
                         else:
                             pass # pragma: no cover
                     elif static_value and isinstance(static_value, classmethod) or self_value and is_type(self_value):
                         member_info = MemberInfo(member_name, member, Method, MemberType.METHOD, access_mode, parent is not obj, obj)
                         if not predicate or predicate(member_info):
-                            member_obj = Method(MemberType.METHOD, FunctionKind.CLASS_METHOD, parent, signature, is_abstract, value)
+                            member_obj = Method(member_name, MemberType.METHOD, FunctionKind.CLASS_METHOD, parent, signature, is_abstract, value)
                         else:
                             pass # pragma: no cover
                     elif isinstance(static_value, staticmethod):
                         member_info = MemberInfo(member_name, member, Method, MemberType.METHOD, access_mode, parent is not obj, obj)
                         if not predicate or predicate(member_info):
-                            member_obj = Method(MemberType.METHOD, FunctionKind.STATIC_METHOD, parent, signature, is_abstract, value)
+                            member_obj = Method(member_name, MemberType.METHOD, FunctionKind.STATIC_METHOD, parent, signature, is_abstract, value)
                         else:
                             pass # pragma: no cover
                     else:
                         member_info = MemberInfo(member_name, member, Method, MemberType.METHOD, access_mode, parent is not obj, obj)
                         if not predicate or predicate(member_info):
-                            member_obj = Method(MemberType.METHOD, FunctionKind.METHOD, parent, signature, is_abstract, value)
+                            member_obj = Method(member_name, MemberType.METHOD, FunctionKind.METHOD, parent, signature, is_abstract, value)
                         else:
                             pass # pragma: no cover
                 else:
                     member_info = MemberInfo(member_name, member, Function, MemberType.FUNCTION, access_mode, parent is not obj, obj)
                     if not predicate or predicate(member_info):
-                        member_obj = Function(MemberType.FUNCTION, FunctionKind.FUNCTION, signature, value)
+                        member_obj = Function(member_name, MemberType.FUNCTION, FunctionKind.FUNCTION, signature, value)
                     else:
                         pass # pragma: no cover
 
             except ValueError as _ex:
                 pass
-            except Exception as _ex:
-                pass
+
         elif isinstance(attribute_base_value or value, property) and is_type(parent): # delegates may return properties, so check base value first
             if filter & MemberFilter.PROPERTIES != MemberFilter.PROPERTIES:
                 continue # pragma: no cover
@@ -336,7 +355,7 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
                 getter = get_signature(cast(FunctionType, prop.fget), parent, globals=globals, builtins=builtins, locals=locals)
                 setter = get_signature(prop.fset, parent, globals=globals, builtins=builtins, locals=locals) if prop.fset else None
                 deleter = get_signature(prop.fdel, parent, globals=globals, builtins=builtins, locals=locals) if prop.fdel else None
-                member_obj = Property(cast(type[Any], parent), getter, setter, deleter, is_abstract, prop)
+                member_obj = Property(member_name, cast(type[Any], parent), getter, setter, deleter, is_abstract, prop)
             else:
                 pass # pragma: no cover
 
@@ -362,7 +381,7 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
             member_info = MemberInfo(member_name, member, Delegate, MemberType.DELEGATE, access_mode, parent is not obj, obj)
             if not predicate or predicate(member_info):
                 annotation = fn_resolve_annotation(member)
-                member_obj = Delegate(annotation or cast(type[Any], type(value) if value else Undefined), parent, attribute_base_value)
+                member_obj = Delegate(member_name, annotation or cast(type[Any], type(value) if value else Undefined), parent, attribute_base_value)
             else:
                 pass # pragma: no cover
             pass
@@ -372,7 +391,7 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
             member_info = MemberInfo(member_name, member, Field, MemberType.FIELD, access_mode, parent is not obj, obj)
             if not predicate or predicate(member_info):
                 annotation = fn_resolve_annotation(member)
-                member_obj = Field(annotation or cast(type[Any], type(value) if value else Undefined), parent)
+                member_obj = Field(member_name, annotation or cast(type[Any], type(value) if value else Undefined), parent)
             else:
                 pass # pragma: no cover
         else:
@@ -381,7 +400,7 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
             member_info = MemberInfo(member_name, member, Variable, MemberType.VARIABLE, access_mode, parent is not obj, obj)
             if not predicate or predicate(member_info):
                 annotation = fn_resolve_annotation(member)
-                member_obj = Variable(annotation or cast(type[Any], type(value) if value else Undefined))
+                member_obj = Variable(member_name, annotation or cast(type[Any], type(value) if value else Undefined))
             else:
                 pass # pragma: no cover
 

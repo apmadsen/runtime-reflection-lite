@@ -4,8 +4,8 @@ from typingutils import AnyFunction
 from deprecated import deprecated
 
 from runtime.reflection.lite.core.objects.signature import Signature
-from runtime.reflection.lite.core.attributes import INIT
-from runtime.reflection.lite.core import get_signature
+from runtime.reflection.lite.core.attributes import INIT, NEW
+from runtime.reflection.lite.core import get_signature, DEFAULT_CTOR
 
 @deprecated("Use get_signature() instead", version = "0.1.0")
 def reflect_function(
@@ -32,4 +32,18 @@ def get_constructor(cls: type[Any]) -> Signature: # pragma: no cover
     Returns:
         Signature: Returns a function signature.
     """
-    return get_signature(getattr(cls, INIT), cls)
+
+    attrs = {
+        member: getattr(cls, member)
+        for member in (NEW, INIT)
+        if hasattr(cls, member)
+    }
+    applicable_constructor = INIT
+
+    if NEW in attrs and attrs[NEW] is not object.__new__:
+        applicable_constructor = NEW
+
+    if attrs[applicable_constructor] in (object.__init__, object.__new__):
+        return DEFAULT_CTOR
+
+    return get_signature(getattr(cls, applicable_constructor), cls)
