@@ -12,12 +12,16 @@ class Constructor(Method):
 
     def __init__(
         self,
+        name: str,
         bound_cls: type[Any],
         signature: Signature,
         reflected: FUNCTION_AND_METHOD_TYPES
     ):
-        super().__init__(MemberType.METHOD, FunctionKind.CONSTRUCTOR, bound_cls, signature, False, reflected)
+        super().__init__(name, MemberType.METHOD, FunctionKind.CONSTRUCTOR, bound_cls, signature, False, reflected)
 
     @property
     def return_type(self) -> type[Any]:
         return Undefined
+
+    def __repr__(self) -> str:
+        return f"Constructor {self.name}{self}"

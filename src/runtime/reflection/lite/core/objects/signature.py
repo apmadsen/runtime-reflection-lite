@@ -28,11 +28,6 @@ class Signature:
         """
         return self.__return_type
 
-    def __repr__(self) -> str: # pragma: no cover
-        str_parameters = ", ".join([ str(p) for p in self.__parameters ]) if self.__parameters else ""
-        str_return = f" -> {get_type_name(self.__return_type)}" if self.__return_type else ""
-        return f"({str_parameters}){str_return}"
-
     def __eq__(self, o: object) -> bool: # pragma: no cover
         if self is o:
             return True
@@ -43,3 +38,10 @@ class Signature:
             )
         return False
 
+    def __str__(self) -> str: # pragma: no cover
+        str_parameters = ", ".join([ str(p) for p in self.__parameters ]) if self.__parameters else ""
+        str_return = get_type_name(self.return_type) if self.return_type else str(self.return_type)
+        return f"({str_parameters}) -> {str_return}"
+
+    def __repr__(self) -> str:
+        return f"Signature {self}"

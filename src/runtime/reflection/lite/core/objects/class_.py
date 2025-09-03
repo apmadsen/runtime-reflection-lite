@@ -20,7 +20,7 @@ class Class(Member):
         members: MemberCollection,
         reflected: type[Any]
     ):
-        super().__init__(MemberType.CLASS)
+        super().__init__(name, MemberType.CLASS)
         self.__name = name
         self.__bases = bases
         self.__members = members
@@ -108,4 +108,4 @@ class Class(Member):
         return self.__fields
 
     def __repr__(self) -> str:
-        return f"{self.name}"
+        return f"Class {self.name}"
