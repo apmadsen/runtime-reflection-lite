@@ -3,6 +3,7 @@ from types import FrameType, ModuleType
 from typingutils import AnyFunction
 from deprecated import deprecated
 
+from runtime.reflection.lite.core.objects.parameter_kind import ParameterKind
 from runtime.reflection.lite.core.objects.signature import Signature
 from runtime.reflection.lite.core.attributes import INIT, NEW
 from runtime.reflection.lite.core import get_signature, DEFAULT_CTOR
@@ -47,3 +48,21 @@ def get_constructor(cls: type[Any]) -> Signature: # pragma: no cover
         return DEFAULT_CTOR
 
     return get_signature(getattr(cls, applicable_constructor), cls)
+
+def has_parameterless_constructor(cls: type[Any]) -> bool:
+    """Checks if type has a parameterless constructor.
+
+    Args:
+        cls (type[Any]): The class reflected.
+
+    Returns:
+        bool: Returns True if type can be instantiated without parameters.
+    """
+    ctor = get_constructor(cls)
+
+    if ctor is DEFAULT_CTOR:
+        return True
+    elif not any([ p for p in ctor.parameters if p.kind in (ParameterKind.POSITIONAL, ParameterKind.POSITIONAL_OR_KEYWORD, ParameterKind.KEYWORD) ]):
+        return True
+    else:
+        return False

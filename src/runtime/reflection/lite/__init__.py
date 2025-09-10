@@ -18,7 +18,7 @@ from runtime.reflection.lite.core.objects.parameter_kind import ParameterKind
 from runtime.reflection.lite.core.objects.parameter_mapper import ParameterMapper
 from runtime.reflection.lite.core.objects.signature import Signature
 from runtime.reflection.lite.core.objects.undefined import Undefined
-from runtime.reflection.lite.core.helpers import reflect_function, get_constructor
+from runtime.reflection.lite.core.helpers import reflect_function, get_constructor, has_parameterless_constructor
 from runtime.reflection.lite.core import get_signature, get_members, reflect
 
 
@@ -46,6 +46,7 @@ __all__ = [
 
     'reflect_function', # deprecated
     'get_constructor',
+    'has_parameterless_constructor',
 
     'get_signature',
     'get_members',
