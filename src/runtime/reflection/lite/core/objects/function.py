@@ -55,7 +55,7 @@ class Function(Member):
         if self.__reflected is not None:
             return self.__reflected
         else:
-            raise Exception("The reflected object is not available!")
+            raise Exception("The reflected object is not available!") # pragma: no cover
 
     def __str__(self) -> str: # pragma: no cover
         return str(self.signature)

@@ -259,7 +259,7 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
             continue
         elif access_mode == AccessMode.PROTECTED and filter & MemberFilter.PROTECTED != MemberFilter.PROTECTED:
             continue
-        elif is_special and filter & MemberFilter.SPECIAL != MemberFilter.SPECIAL:
+        elif is_special and member != applicable_constructor and filter & MemberFilter.SPECIAL != MemberFilter.SPECIAL:
             continue
 
         if member in annotations and ( annotation_val := annotations[member] ):
@@ -272,7 +272,7 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
                 annotation = resolve_annotation(annotation_val)
 
         if member in attrs:
-            value = attrs[member]
+            value = attrs[member] # pyright: ignore[reportUnknownVariableType]
 
             if member in cls_dict:
                 attribute_value = cls_dict[member]
@@ -381,7 +381,7 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
             member_info = MemberInfo(member_name, member, Delegate, MemberType.DELEGATE, access_mode, parent is not obj, obj)
             if not predicate or predicate(member_info):
                 annotation = fn_resolve_annotation(member)
-                member_obj = Delegate(member_name, annotation or cast(type[Any], type(value) if value else Undefined), parent, attribute_base_value)
+                member_obj = Delegate(member_name, annotation or cast(type[Any], type(value) if value else Undefined), parent, attribute_base_value) # pyright: ignore[reportUnknownArgumentType]
             else:
                 pass # pragma: no cover
             pass
@@ -391,7 +391,7 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
             member_info = MemberInfo(member_name, member, Field, MemberType.FIELD, access_mode, parent is not obj, obj)
             if not predicate or predicate(member_info):
                 annotation = fn_resolve_annotation(member)
-                member_obj = Field(member_name, annotation or cast(type[Any], type(value) if value else Undefined), parent)
+                member_obj = Field(member_name, annotation or cast(type[Any], type(value) if value else Undefined), parent) # pyright: ignore[reportUnknownArgumentType]
             else:
                 pass # pragma: no cover
         else:
@@ -400,7 +400,7 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
             member_info = MemberInfo(member_name, member, Variable, MemberType.VARIABLE, access_mode, parent is not obj, obj)
             if not predicate or predicate(member_info):
                 annotation = fn_resolve_annotation(member)
-                member_obj = Variable(member_name, annotation or cast(type[Any], type(value) if value else Undefined))
+                member_obj = Variable(member_name, annotation or cast(type[Any], type(value) if value else Undefined)) # pyright: ignore[reportUnknownArgumentType]
             else:
                 pass # pragma: no cover
 

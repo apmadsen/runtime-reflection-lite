@@ -7,11 +7,14 @@ from runtime.reflection.lite.core.objects.member_collection import MemberCollect
 from runtime.reflection.lite.core.objects.member_type import MemberType
 from runtime.reflection.lite.core.objects.constructor import Constructor
 from runtime.reflection.lite.core.objects.method import Method
+from runtime.reflection.lite.core.objects.function import Function
 from runtime.reflection.lite.core.objects.property_ import Property
 from runtime.reflection.lite.core.objects.field import Field
 
 class Class(Member):
-    __slots__ = [ "__name", "__bases", "__members", "__constructor", "__classes", "__methods", "__properties", "__fields", "__delegates", "__reflected" ]
+    __slots__ = [ "__name", "__bases", "__members", "__constructor", "__classes",
+                  "__methods", "__functions", "__properties", "__fields",
+                  "__delegates", "__reflected" ]
 
     def __init__(
         self,
@@ -27,6 +30,7 @@ class Class(Member):
         self.__reflected = ref(reflected)
         self.__constructor: Constructor | None = None
         self.__classes: MemberCollectionSubset[Class] | None = None
+        self.__functions: MemberCollectionSubset[Function] | None = None
         self.__methods: MemberCollectionSubset[Method] | None = None
         self.__properties: MemberCollectionSubset[Property] | None = None
         self.__fields: MemberCollectionSubset[Field] | None = None
@@ -61,7 +65,7 @@ class Class(Member):
         """The class constructor (i.e. "__init__()" function).
         """
         if not self.__constructor:
-            _, self.__constructor = self.__members.subset(Constructor)[0] # there's always exactly one constructor
+            _, self.__constructor = self.__members.subset_constructors()[0] # there's always exactly one constructor
         else:
             pass # pragma: no cover
 

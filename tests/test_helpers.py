@@ -1,6 +1,7 @@
 # pyright: basic
 # ruff: noqa
 from pytest import raises as assert_raises
+from typing import Protocol
 
 from runtime.reflection.lite import has_parameterless_constructor
 from runtime.reflection.lite.core import DEFAULT_CTOR

@@ -3,6 +3,7 @@ from typingutils import get_type_name
 from inspect import Parameter as InspectParameter
 
 from runtime.reflection.lite.core.objects.parameter_kind import ParameterKind
+from runtime.reflection.lite.core.objects.undefined import Undefined
 
 class Parameter:
     """The Parameter class represents a function parameter.
@@ -51,12 +52,14 @@ class Parameter:
                 self.name == o.name
                 and self.kind == o.kind
                 and self.parameter_type == o.parameter_type
+                and self.parameter_type is not Undefined
             )
         elif isinstance(o, InspectParameter):
             return (
                 self.name == o.name
                 and cast(int, self.kind) == o.kind
                 and self.parameter_type == o.annotation
+                and self.parameter_type is not Undefined
             )
 
         return False
