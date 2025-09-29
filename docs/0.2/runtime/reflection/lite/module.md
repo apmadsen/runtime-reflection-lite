@@ -39,4 +39,3 @@
 ### [has_parameterless_constructor](has_parameterless_constructor.md)
 ### [is_prototypically_equivalent](is_prototypically_equivalent.md)
 ### [reflect](reflect.md)
-### [reflect_function](reflect_function.md) _DEPRECATED_
