@@ -1,6 +1,7 @@
 from typing import  Any, Callable, cast, overload
 from typingutils import AnyFunction, is_type, is_annotated_type, resolve_annotation
 from types import FrameType, ModuleType, MethodType, FunctionType
+from sys import modules as sys_modules
 from inspect import Parameter as InspectParameter, getattr_static, signature as builtin_get_signature, stack, unwrap
 
 from runtime.reflection.lite.core.objects.access_mode import AccessMode
@@ -27,12 +28,13 @@ from runtime.reflection.lite.core.objects.property_ import Property
 from runtime.reflection.lite.core.objects.deferred_reflection import DeferredReflection
 from runtime.reflection.lite.core.cache import Cache
 from runtime.reflection.lite.core.attributes import (
-    INIT, CLASS, DICT, SELF, GLOBALS, BUILTINS, CALL,
+    INIT, CLASS, DICT, SELF, GLOBALS, BUILTINS, CALL, MODULE,
     TEXT_SIGNATURE, ABSTRACT_METOD, MRO, NAME, NEW
 )
 from runtime.reflection.lite.core.types import FUNCTION_TYPES, METHOD_TYPES
 from runtime.reflection.lite.core.misc import get_annotations, get_access_mode, is_special_attribute, is_delegate
 from runtime.reflection.lite.core.resolving import resolve, get_frame
+from runtime.reflection.lite.core.modules import load_module
 
 MODULE_CACHE = Cache[Module]()
 CLASS_CACHE = Cache[Class]()
@@ -93,8 +95,10 @@ def get_signature(
     globals = globals or getattr(fn, GLOBALS) if hasattr(fn, GLOBALS) else None
     builtins = builtins or getattr(fn, BUILTINS) if hasattr(fn, BUILTINS) else None
 
-    if locals is None and ( frame := get_frame(fn, stack()[1:], parent) ): # pragma: no cover
+    if not locals and ( frame := get_frame(fn, stack()[1:], parent) ): # pragma: no cover
         locals = frame.f_locals
+    elif ( not globals or "TYPE_CHECKING" in globals ) and hasattr(fn, MODULE) and ( modulename := getattr(fn, MODULE) ) and modulename in sys_modules:
+        _, globals = load_module(modulename)
 
     if parameters:
         first_param = parameters[0].name.lower()
@@ -218,6 +222,9 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
     builtins: dict[str, Any] | None = getattr(obj, BUILTINS) if hasattr(obj, BUILTINS) else None
     locals: dict[str, Any] = {}
 
+    if not isinstance(obj, ModuleType) and not globals and hasattr(obj, MODULE) and ( modulename := getattr(obj, MODULE) ) and modulename in sys_modules:
+        _, globals = load_module(modulename)
+
     def fn_resolve_annotation(member: str) -> Any:
         if member in annotations and ( annotation_val := annotations[member] ):
             if isinstance(annotation_val, str):
@@ -272,7 +279,7 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
                 annotation = resolve_annotation(annotation_val)
 
         if member in attrs:
-            value = attrs[member] # pyright: ignore[reportUnknownVariableType]
+            value = attrs[member]
 
             if member in cls_dict:
                 attribute_value = cls_dict[member]
@@ -381,7 +388,7 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
             member_info = MemberInfo(member_name, member, Delegate, MemberType.DELEGATE, access_mode, parent is not obj, obj)
             if not predicate or predicate(member_info):
                 annotation = fn_resolve_annotation(member)
-                member_obj = Delegate(member_name, annotation or cast(type[Any], type(value) if value else Undefined), parent, attribute_base_value) # pyright: ignore[reportUnknownArgumentType]
+                member_obj = Delegate(member_name, annotation or cast(type[Any], type(value) if value else Undefined), parent, attribute_base_value)
             else:
                 pass # pragma: no cover
             pass
@@ -391,7 +398,7 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
             member_info = MemberInfo(member_name, member, Field, MemberType.FIELD, access_mode, parent is not obj, obj)
             if not predicate or predicate(member_info):
                 annotation = fn_resolve_annotation(member)
-                member_obj = Field(member_name, annotation or cast(type[Any], type(value) if value else Undefined), parent) # pyright: ignore[reportUnknownArgumentType]
+                member_obj = Field(member_name, annotation or cast(type[Any], type(value) if value else Undefined), parent)
             else:
                 pass # pragma: no cover
         else:
@@ -400,7 +407,7 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
             member_info = MemberInfo(member_name, member, Variable, MemberType.VARIABLE, access_mode, parent is not obj, obj)
             if not predicate or predicate(member_info):
                 annotation = fn_resolve_annotation(member)
-                member_obj = Variable(member_name, annotation or cast(type[Any], type(value) if value else Undefined)) # pyright: ignore[reportUnknownArgumentType]
+                member_obj = Variable(member_name, annotation or cast(type[Any], type(value) if value else Undefined))
             else:
                 pass # pragma: no cover
 
