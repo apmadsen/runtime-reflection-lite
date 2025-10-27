@@ -18,7 +18,7 @@ class Module(Member):
         members: MemberCollection,
         reflected: ModuleType,
     ):
-        super().__init__(MemberType.MODULE)
+        super().__init__(name, MemberType.MODULE)
         self.__name = name
         self.__members = members
         self.__modules: MemberCollectionSubset[Module] | None = None
@@ -84,4 +84,4 @@ class Module(Member):
         return self.__variables
 
     def __repr__(self) -> str:
-        return f"{self.name}"
+        return f"Module {self.name}"

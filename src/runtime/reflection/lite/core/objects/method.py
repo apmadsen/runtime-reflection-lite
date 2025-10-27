@@ -11,6 +11,7 @@ class Method(Function):
 
     def __init__(
         self,
+        name: str,
         member_type: MemberType,
         kind: FunctionKind,
         bound_cls: type[Any],
@@ -18,7 +19,7 @@ class Method(Function):
         abstract: bool,
         reflected: FUNCTION_AND_METHOD_TYPES
     ):
-        super().__init__(member_type, kind, signature, reflected)
+        super().__init__(name, member_type, kind, signature, reflected)
         self.__abstract = abstract
         self.__bound_cls = bound_cls
 
@@ -33,3 +34,6 @@ class Method(Function):
         """Indicates if method is abstract.
         """
         return self.__abstract
+
+    def __repr__(self) -> str:
+        return f"Method {self.name}{self}"

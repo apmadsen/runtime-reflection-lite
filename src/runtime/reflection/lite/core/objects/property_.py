@@ -1,4 +1,5 @@
 from typing import Any
+from typingutils import get_type_name
 
 from runtime.reflection.lite.core.objects.signature import Signature
 from runtime.reflection.lite.core.objects.member import Member
@@ -9,6 +10,7 @@ class Property(Member):
 
     def __init__(
         self,
+        name: str,
         bound_cls: type[Any],
         getter: Signature,
         setter: Signature | None,
@@ -16,7 +18,7 @@ class Property(Member):
         abstract: bool,
         reflected: property
     ):
-        super().__init__(MemberType.PROPERTY)
+        super().__init__(name, MemberType.PROPERTY)
         self.__getter = getter
         self.__setter = setter
         self.__deleter = deleter
@@ -71,3 +73,9 @@ class Property(Member):
         """The property reflected.
         """
         return self.__reflected
+
+    def __str__(self) -> str: # pragma: no cover
+        return get_type_name(self.getter.return_type) if self.getter.return_type else str(self.getter.return_type)
+
+    def __repr__(self) -> str:
+        return f"Property {self.name}: {self}"

@@ -23,7 +23,7 @@ def resolve(
         try:
             result = eval(annotation, globals, locals)
             return resolve_annotation(result)
-        except:
+        except: # noqa: E722
             pass
 
     # fallback
@@ -37,7 +37,7 @@ def resolve(
         try:
             result = eval(annotation, globals, locals)
             return resolve_annotation(result)
-        except:
+        except: # noqa: E722
             pass
 
     raise Exception(f"Unable to resolve {annotation}") # pragma: no cover
@@ -48,17 +48,21 @@ def get_frame(
     parent: Any | None
 ) -> FrameType | None: # pragma: no cover
     module = None
+    module_name = None
 
     if hasattr(obj, MODULE):
-        module = modules[getattr(obj, MODULE)]
+        module_name = getattr(obj, MODULE)
     elif parent and hasattr(parent, MODULE):
-        module = modules[getattr(parent, MODULE)]
+        module_name = getattr(parent, MODULE)
 
-    if module and hasattr(module, FILE):
-        for frame in stack:
-            if frame.filename == module.__file__:
-                frame_locals = frame.frame.f_locals.values()
-                if parent is not None and parent in frame_locals:
-                    return frame.frame
-                elif obj in frame_locals:
-                    return frame.frame
+    if module_name in modules:
+        module = modules[module_name]
+
+        if hasattr(module, FILE):
+            for frame in stack:
+                if frame.filename == module.__file__:
+                    frame_locals = frame.frame.f_locals.values()
+                    if parent is not None and parent in frame_locals:
+                        return frame.frame
+                    elif obj in frame_locals:
+                        return frame.frame
