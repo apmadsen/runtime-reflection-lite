@@ -45,3 +45,24 @@ def test_reflect_class13():
     assert reflection.constructor.signature.parameters[0].parameter_type is int # org annotation is Literal[1,2,3,4] which must resolve to int
     assert reflection.constructor.signature.parameters[1].parameter_type is str # org annotation is Annotated[str, "a string"] which must resolve to str
     assert reflection.properties["field2"][1].property_type is str # org annotation is Annotated[str, "a string"] which must resolve to str
+
+
+def test_example1():
+    from runtime.reflection.lite import MemberFilter, MemberInfo, Class, Method, reflect, get_signature, get_members
+
+    class Class1:
+        def __init__(self, value: str):
+            self.__value = value
+
+        def do_something(self, suffix: str | None = None) -> str:
+            return self.__value + (suffix or "")
+
+    reflection: Class = reflect(Class1)
+    reflection.constructor.signature # -> (value: str)
+    member_info, method = reflection.members.subset_methods()["do_something"] # -> tuple[MemberInfo, Method]
+
+    signature1 = get_signature(Class1.do_something) # -> (suffix: str | None) -> str
+    signature2 = get_signature(Class1.__init__) # -> (value: str)
+
+    members = get_members(Class1, filter = MemberFilter.FUNCTIONS_AND_METHODS)
+    member_info, member = members["do_something"] # -> MemberInfo, Member
