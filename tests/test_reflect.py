@@ -6,7 +6,7 @@ from pytest import raises as assert_raises
 
 from runtime.reflection.lite import (
     ParameterKind, Undefined, Function, Constructor, Variable, Field, Class, Delegate,
-    Method, Property, FunctionKind, AccessMode, MemberType, Module, MemberFilter, get_members, reflect
+    Method, Property, FunctionKind, AccessMode, MemberType, Module, MemberFilter, get_members, reflect, get_signature
 )
 
 
@@ -46,6 +46,12 @@ def test_reflect_class13():
     assert reflection.constructor.signature.parameters[1].parameter_type is str # org annotation is Annotated[str, "a string"] which must resolve to str
     assert reflection.properties["field2"][1].property_type is str # org annotation is Annotated[str, "a string"] which must resolve to str
 
+def test_resolve():
+    from tests.referring_class import Referring
+    reflection = reflect(Referring)
+    assert reflection is not None
+
+    sig = get_signature(Referring.__init__)
 
 def test_example1():
     from runtime.reflection.lite import MemberFilter, MemberInfo, Class, Method, reflect, get_signature, get_members

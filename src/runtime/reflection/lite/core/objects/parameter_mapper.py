@@ -55,5 +55,16 @@ class ParameterMapper(Iterable[Parameter]):
 
     def __eq__(self, o: object) -> bool: # pragma: no cover
         if isinstance(o, ParameterMapper):
-            return self.__parameters == o.__parameters
-        return False
+            for parameter in self:
+                if parameter.name in o:
+                    ref = o[parameter.name]
+                    if parameter != ref:
+                        return False
+                else:
+                    return False
+
+            for parameter in o:
+                if parameter.name not in self:
+                    return False
+
+        return True

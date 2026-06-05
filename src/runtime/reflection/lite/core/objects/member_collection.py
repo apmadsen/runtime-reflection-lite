@@ -1,10 +1,11 @@
 from __future__ import annotations
-from typing import Callable, ItemsView, Iterable, Iterator, Mapping, Generic, TypeVar, cast, overload, TYPE_CHECKING
+from typing import Callable, Iterable, Iterator, Mapping, Generic, TypeVar, cast, overload, TYPE_CHECKING
 from collections.abc import ItemsView, ValuesView, KeysView
 
 from runtime.reflection.lite.core.objects.member import Member
 from runtime.reflection.lite.core.objects.member_info import MemberInfo
 from runtime.reflection.lite.core.objects.deferred_reflection import DeferredReflection
+from runtime.reflection.lite.core.objects.constructor import Constructor
 from runtime.reflection.lite.core.objects.function import Function
 from runtime.reflection.lite.core.objects.method import Method
 from runtime.reflection.lite.core.objects.property_ import Property
@@ -158,6 +159,9 @@ class MemberCollection(Mapping[str, tuple[MemberInfo, Member]]):
     def subset_classes(self) -> MemberCollectionSubset[Class]:
         from runtime.reflection.lite.core.objects.class_ import Class
         return self.subset(Class)
+
+    def subset_constructors(self) -> MemberCollectionSubset[Constructor]:
+        return self.subset(Constructor)
 
     def subset_methods(self) -> MemberCollectionSubset[Method]:
         return self.subset(Method)
