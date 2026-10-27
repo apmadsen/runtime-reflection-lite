@@ -1,14 +1,16 @@
-from typing import Any, cast
-from typingutils import get_type_name
 from inspect import Parameter as InspectParameter
+from typing import Any, cast
+
+from typingutils import get_type_name
 
 from runtime.reflection.lite.core.objects.parameter_kind import ParameterKind
 from runtime.reflection.lite.core.objects.undefined import Undefined
 
+
 class Parameter:
     """The Parameter class represents a function parameter.
     """
-    __slots__ = ["__name", "__kind", "__doc", "__parameter_type", "__default"]
+    __slots__ = ["__default", "__doc", "__kind", "__name", "__parameter_type"]
 
     def __init__(
         self,

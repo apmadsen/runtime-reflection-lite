@@ -1,5 +1,6 @@
 from enum import IntFlag
 
+
 class MemberFilter(IntFlag):
     MODULES = 1
     CLASSES = 2

@@ -1,11 +1,11 @@
-from typing import Any
 import typing
-from types import ModuleType
-from os import path
-from sys import modules
-from importlib import import_module, util
 from contextlib import contextmanager
 from functools import lru_cache
+from importlib import import_module, util
+from os import path
+from sys import modules
+from types import ModuleType
+from typing import Any
 
 from runtime.reflection.lite.core.attributes import DICT, FILE
 
@@ -39,7 +39,7 @@ def load_module(name: str) -> tuple[ModuleType, dict[str, Any]]:
                 typed_module = util.module_from_spec(spec)
                 try:
                     spec.loader.exec_module(typed_module)
-                except:  # noqa: E722
+                except:  # noqa: E722, S110
                     pass
                     # log.warning(f"Failed to completely load module {name} for type checking")
 
@@ -47,11 +47,11 @@ def load_module(name: str) -> tuple[ModuleType, dict[str, Any]]:
 
     return module, module_dict
 
-@lru_cache()
+@lru_cache
 def _load_by_name(name: str, cd: str) -> ModuleType: # cd argument is there to differentiate caching points by the current dir
     return modules[name] if name in modules else import_module(name)
 
-@lru_cache()
+@lru_cache
 def _load_by_file(file_path: str) -> ModuleType:
     found = [
         module
@@ -71,7 +71,7 @@ def _load_by_file(file_path: str) -> ModuleType:
         spec.loader.exec_module(module)
         return module
     else:
-        raise Exception(f"Unable to load module {module_name} from {file_path}")
+        raise ModuleNotFoundError(module_name, file_path) # pragma: no cover
 
 
 @contextmanager
@@ -84,7 +84,7 @@ def patch(target: Any, **attributes: Any):
 
     old_values = {
         attr: getattr(target, attr)
-        for attr in attributes.keys()
+        for attr in attributes
     }
 
     try:

@@ -1,16 +1,21 @@
 from __future__ import annotations
-from types import ModuleType
-from weakref import ref, ReferenceType
 
-from runtime.reflection.lite.core.objects.member import Member
-from runtime.reflection.lite.core.objects.member_collection import MemberCollection, MemberCollectionSubset
-from runtime.reflection.lite.core.objects.member_type import MemberType
+from types import ModuleType
+from weakref import ReferenceType, ref
+
 from runtime.reflection.lite.core.objects.class_ import Class
 from runtime.reflection.lite.core.objects.function import Function
+from runtime.reflection.lite.core.objects.member import Member
+from runtime.reflection.lite.core.objects.member_collection import (
+    MemberCollection,
+    MemberCollectionSubset,
+)
+from runtime.reflection.lite.core.objects.member_type import MemberType
 from runtime.reflection.lite.core.objects.variable import Variable
 
+
 class Module(Member):
-    __slots__ = [ "__name", "__members", "__modules", "__classes", "__functions", "__properties", "__variables", "__reflected" ]
+    __slots__ = ["__classes", "__functions", "__members", "__modules", "__name", "__properties", "__reflected", "__variables"]
 
     def __init__(
         self,

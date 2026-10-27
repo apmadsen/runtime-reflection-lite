@@ -1,10 +1,13 @@
-from typing import Any
-from types import FrameType
+from inspect import FrameInfo, stack
 from sys import modules
-from inspect import FrameInfo,  stack
+from types import FrameType
+from typing import Any
+
 from typingutils import resolve_annotation
 
-from runtime.reflection.lite.core.attributes import MODULE, FILE
+from runtime.reflection.lite.core.attributes import FILE, MODULE
+from runtime.reflection.lite.core.exceptions.resolve_error import ResolveError
+
 
 def resolve(
     annotation: str,
@@ -23,7 +26,7 @@ def resolve(
         try:
             result = eval(annotation, globals, locals)
             return resolve_annotation(result)
-        except: # noqa: E722
+        except:  # noqa: E722, S110
             pass
 
     # fallback
@@ -37,10 +40,10 @@ def resolve(
         try:
             result = eval(annotation, globals, locals)
             return resolve_annotation(result)
-        except: # noqa: E722
+        except:  # noqa: E722, S110
             pass
 
-    raise Exception(f"Unable to resolve {annotation}") # pragma: no cover
+    raise ResolveError(f"Unable to resolve {annotation}") # pragma: no cover
 
 def get_frame(
     obj: Any,
@@ -62,7 +65,5 @@ def get_frame(
             for frame in stack:
                 if frame.filename == module.__file__:
                     frame_locals = frame.frame.f_locals.values()
-                    if parent is not None and parent in frame_locals:
-                        return frame.frame
-                    elif obj in frame_locals:
+                    if parent is not None and parent in frame_locals or obj in frame_locals:
                         return frame.frame

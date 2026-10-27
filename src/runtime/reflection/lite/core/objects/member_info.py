@@ -1,12 +1,14 @@
+from types import FrameType, ModuleType
 from typing import Any
-from types import ModuleType, FrameType
+
+from runtime.reflection.lite.core.misc import is_special_attribute
+from runtime.reflection.lite.core.objects.access_mode import AccessMode
 from runtime.reflection.lite.core.objects.member import Member
 from runtime.reflection.lite.core.objects.member_type import MemberType
-from runtime.reflection.lite.core.objects.access_mode import AccessMode
-from runtime.reflection.lite.core.misc import is_special_attribute
+
 
 class MemberInfo:
-    __slots__ = [ "__name", "__org_name", "__type", "__class", "__access_mode", "__is_special", "__is_inherited", "__parent"]
+    __slots__ = ["__access_mode", "__class", "__is_inherited", "__is_special", "__name", "__org_name", "__parent", "__type"]
 
     def __init__(
         self,

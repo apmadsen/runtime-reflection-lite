@@ -1,40 +1,63 @@
-from typing import  Any, Callable, cast, overload
-from typingutils import AnyFunction, is_type, is_annotated_type, resolve_annotation
-from types import FrameType, ModuleType, MethodType, FunctionType
+from collections.abc import Callable
+from inspect import Parameter as InspectParameter
+from inspect import getattr_static, stack, unwrap
+from inspect import signature as builtin_get_signature
 from sys import modules as sys_modules
-from inspect import Parameter as InspectParameter, getattr_static, signature as builtin_get_signature, stack, unwrap
+from types import FrameType, FunctionType, MethodType, ModuleType
+from typing import Any, cast, overload
 
+from typingutils import AnyFunction, is_annotated_type, is_type, resolve_annotation
+
+from runtime.reflection.lite.core.attributes import (
+    ABSTRACT_METOD,
+    BUILTINS,
+    CALL,
+    CLASS,
+    DICT,
+    GLOBALS,
+    INIT,
+    MODULE,
+    MRO,
+    NAME,
+    NEW,
+    SELF,
+    TEXT_SIGNATURE,
+)
+from runtime.reflection.lite.core.cache import Cache
+from runtime.reflection.lite.core.misc import (
+    get_access_mode,
+    get_annotations,
+    is_delegate,
+    is_special_attribute,
+)
+from runtime.reflection.lite.core.modules import load_module
 from runtime.reflection.lite.core.objects.access_mode import AccessMode
+from runtime.reflection.lite.core.objects.class_ import Class
+from runtime.reflection.lite.core.objects.constructor import Constructor
+from runtime.reflection.lite.core.objects.deferred_reflection import DeferredReflection
 from runtime.reflection.lite.core.objects.delegate import Delegate
+from runtime.reflection.lite.core.objects.field import Field
+from runtime.reflection.lite.core.objects.function import Function
+from runtime.reflection.lite.core.objects.function_kind import FunctionKind
 from runtime.reflection.lite.core.objects.member import Member
-from runtime.reflection.lite.core.objects.member_type import MemberType
+from runtime.reflection.lite.core.objects.member_collection import (
+    InternalMemberCollection,
+    MemberCollection,
+)
 from runtime.reflection.lite.core.objects.member_filter import MemberFilter
-from runtime.reflection.lite.core.objects.member_collection import InternalMemberCollection, MemberCollection
 from runtime.reflection.lite.core.objects.member_info import MemberInfo
-from runtime.reflection.lite.core.objects.undefined import Undefined
-from runtime.reflection.lite.core.objects.signature import Signature
+from runtime.reflection.lite.core.objects.member_type import MemberType
+from runtime.reflection.lite.core.objects.method import Method
+from runtime.reflection.lite.core.objects.module import Module
 from runtime.reflection.lite.core.objects.parameter import Parameter
 from runtime.reflection.lite.core.objects.parameter_kind import ParameterKind
 from runtime.reflection.lite.core.objects.parameter_mapper import ParameterMapper
-from runtime.reflection.lite.core.objects.module import Module
-from runtime.reflection.lite.core.objects.function import Function
-from runtime.reflection.lite.core.objects.class_ import Class
-from runtime.reflection.lite.core.objects.field import Field
-from runtime.reflection.lite.core.objects.variable import Variable
-from runtime.reflection.lite.core.objects.function_kind import FunctionKind
-from runtime.reflection.lite.core.objects.method import Method
-from runtime.reflection.lite.core.objects.constructor import Constructor
 from runtime.reflection.lite.core.objects.property_ import Property
-from runtime.reflection.lite.core.objects.deferred_reflection import DeferredReflection
-from runtime.reflection.lite.core.cache import Cache
-from runtime.reflection.lite.core.attributes import (
-    INIT, CLASS, DICT, SELF, GLOBALS, BUILTINS, CALL, MODULE,
-    TEXT_SIGNATURE, ABSTRACT_METOD, MRO, NAME, NEW
-)
+from runtime.reflection.lite.core.objects.signature import Signature
+from runtime.reflection.lite.core.objects.undefined import Undefined
+from runtime.reflection.lite.core.objects.variable import Variable
+from runtime.reflection.lite.core.resolving import get_frame, resolve
 from runtime.reflection.lite.core.types import FUNCTION_TYPES, METHOD_TYPES
-from runtime.reflection.lite.core.misc import get_annotations, get_access_mode, is_special_attribute, is_delegate
-from runtime.reflection.lite.core.resolving import resolve, get_frame
-from runtime.reflection.lite.core.modules import load_module
 
 MODULE_CACHE = Cache[Module]()
 CLASS_CACHE = Cache[Class]()
@@ -53,7 +76,6 @@ def get_signature(
     Returns:
         Signature: Returns a Signature instance.
     """
-    ...
 @overload
 def get_signature(
     fn: AnyFunction,
@@ -68,7 +90,6 @@ def get_signature(
     Returns:
         Signature: Returns a Signature instance.
     """
-    ...
 @overload
 def get_signature(
     fn: AnyFunction,
@@ -103,13 +124,11 @@ def get_signature(
     if parameters:
         first_param = parameters[0].name.lower()
 
-        if isinstance(fn, MethodType) and first_param in ("self", "cls"): # pragma: no cover
+        if isinstance(fn, MethodType) and first_param in ("self", "cls") or first_param in ("self", "cls") and hasattr(fn, SELF): # pragma: no cover
             parameters = parameters[1:]
-        elif first_param in ("self", "cls") and hasattr(fn, SELF): # pragma: no cover
-            parameters = parameters[1:]
-        elif first_param in ("self", "cls"):
-            if hasattr(fn, CALL) and ( call := getattr(fn, CALL) ): # pragma: no cover
-                if hasattr(call, TEXT_SIGNATURE) and ( text_sig := getattr(call, TEXT_SIGNATURE) ):
+        elif first_param in ("self", "cls"):  # noqa: SIM102
+            if hasattr(fn, CALL) and ( call := getattr(fn, CALL) ): # pragma: no cover  # noqa: SIM102
+                if hasattr(call, TEXT_SIGNATURE) and ( text_sig := getattr(call, TEXT_SIGNATURE) ):  # noqa: SIM102
                     if cast(str, text_sig).startswith("($self"):
                         parameters = parameters[1:]
 
@@ -162,7 +181,6 @@ def get_members(obj: type[Any] | ModuleType | FrameType) -> MemberCollection:
     Returns:
         MemberCollection: Returns a MemberCollection.
     """
-    ...
 @overload
 def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter) -> MemberCollection:
     """Gets the members (functions and properties) of a class, module or frame.
@@ -174,7 +192,6 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
     Returns:
         MemberCollection: Returns a MemberCollection.
     """
-    ...
 @overload
 def get_members(obj: type[Any] | ModuleType | FrameType, *, predicate: Callable[[MemberInfo], bool]) -> MemberCollection:
     """Gets the members (functions and properties) of a class, module or frame.
@@ -186,7 +203,6 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, predicate: Callable[
     Returns:
         MemberCollection: Returns a MemberCollection.
     """
-    ...
 @overload
 def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter, predicate: Callable[[MemberInfo], bool]) -> MemberCollection:
     """Gets the members (functions and properties) of a class, module or frame.
@@ -199,7 +215,6 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
     Returns:
         MemberCollection: Returns a MemberCollection.
     """
-    ...
 def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter = MemberFilter.DEFAULT, predicate: Callable[[MemberInfo], bool] | None = None) -> MemberCollection:
     result = InternalMemberCollection()
 
@@ -262,9 +277,9 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
         attribute_value: Any | None = None
         attribute_base_value: Any | None = None
 
-        if access_mode == AccessMode.PRIVATE and filter & MemberFilter.PRIVATE != MemberFilter.PRIVATE:
+        if access_mode == AccessMode.PRIVATE and filter & MemberFilter.PRIVATE != MemberFilter.PRIVATE:  # noqa: SIM114
             continue
-        elif access_mode == AccessMode.PROTECTED and filter & MemberFilter.PROTECTED != MemberFilter.PROTECTED:
+        elif access_mode == AccessMode.PROTECTED and filter & MemberFilter.PROTECTED != MemberFilter.PROTECTED:  # noqa: SIM114
             continue
         elif is_special and member != applicable_constructor and filter & MemberFilter.SPECIAL != MemberFilter.SPECIAL:
             continue
@@ -279,7 +294,7 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
                 annotation = resolve_annotation(annotation_val)
 
         if member in attrs:
-            value = attrs[member]
+            value = attrs[member] # pyright: ignore[reportUnknownVariableType]
 
             if member in cls_dict:
                 attribute_value = cls_dict[member]
@@ -291,7 +306,7 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
                         parent = base_cls
                         attribute_base_value = basecls_dict[member]
                         break
-                pass # pragma: no cover
+                pass # pragma: no cover  # noqa: PIE790
             else:
                 pass # pragma: no cover
         elif member in annotations:
@@ -388,17 +403,16 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
             member_info = MemberInfo(member_name, member, Delegate, MemberType.DELEGATE, access_mode, parent is not obj, obj)
             if not predicate or predicate(member_info):
                 annotation = fn_resolve_annotation(member)
-                member_obj = Delegate(member_name, annotation or cast(type[Any], type(value) if value else Undefined), parent, attribute_base_value)
+                member_obj = Delegate(member_name, annotation or cast(type[Any], type(value) if value else Undefined), parent, attribute_base_value) # pyright: ignore[reportUnknownArgumentType]
             else:
                 pass # pragma: no cover
-            pass
         elif isinstance(parent, type):
             if filter & MemberFilter.FIELDS_AND_VARIABLES != MemberFilter.FIELDS_AND_VARIABLES:
                 continue # pragma: no cover
             member_info = MemberInfo(member_name, member, Field, MemberType.FIELD, access_mode, parent is not obj, obj)
             if not predicate or predicate(member_info):
                 annotation = fn_resolve_annotation(member)
-                member_obj = Field(member_name, annotation or cast(type[Any], type(value) if value else Undefined), parent)
+                member_obj = Field(member_name, annotation or cast(type[Any], type(value) if value else Undefined), parent) # pyright: ignore[reportUnknownArgumentType]
             else:
                 pass # pragma: no cover
         else:
@@ -407,7 +421,7 @@ def get_members(obj: type[Any] | ModuleType | FrameType, *, filter: MemberFilter
             member_info = MemberInfo(member_name, member, Variable, MemberType.VARIABLE, access_mode, parent is not obj, obj)
             if not predicate or predicate(member_info):
                 annotation = fn_resolve_annotation(member)
-                member_obj = Variable(member_name, annotation or cast(type[Any], type(value) if value else Undefined))
+                member_obj = Variable(member_name, annotation or cast(type[Any], type(value) if value else Undefined)) # pyright: ignore[reportUnknownArgumentType]
             else:
                 pass # pragma: no cover
 
@@ -426,7 +440,6 @@ def reflect(obj: type[Any]) -> Class:
     Returns:
         Class: Returns a Class object.
     """
-    ...
 @overload
 def reflect(obj: ModuleType) -> Module:
     """Reflects on a module.
@@ -437,7 +450,6 @@ def reflect(obj: ModuleType) -> Module:
     Returns:
         Class: Returns a Module object.
     """
-    ...
 def reflect(obj: type[Any] | ModuleType) -> Class | Module:
     if isinstance(obj, ModuleType):
         return reflect_module(obj, MODULE_CACHE)()

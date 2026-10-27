@@ -1,9 +1,14 @@
 from types import (
-    CodeType, ModuleType, FrameType, # pyright: ignore[reportUnusedImport]
-    FunctionType, MethodType, LambdaType, BuiltinFunctionType, BuiltinMethodType,
-    WrapperDescriptorType, MethodWrapperType, MethodDescriptorType, ClassMethodDescriptorType
+    BuiltinFunctionType,
+    BuiltinMethodType,
+    ClassMethodDescriptorType,
+    FunctionType,
+    LambdaType,
+    MethodDescriptorType,
+    MethodType,
+    MethodWrapperType,
+    WrapperDescriptorType,
 )
-
 
 FUNCTION_TYPES = (
     FunctionType, LambdaType,
