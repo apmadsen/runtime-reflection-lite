@@ -71,7 +71,7 @@ def _load_by_file(file_path: str) -> ModuleType:
         spec.loader.exec_module(module)
         return module
     else:
-        raise ModuleNotFoundError(module_name, file_path)
+        raise ModuleNotFoundError(module_name, file_path) # pragma: no cover
 
 
 @contextmanager
