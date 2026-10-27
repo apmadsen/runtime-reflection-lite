@@ -1,6 +1,7 @@
-from typing import Protocol
-from types import TracebackType
 from threading import RLock
+from types import TracebackType
+from typing import Protocol
+
 
 class LockProtocol(Protocol): # pragma no cover
     def __enter__(self) -> None:
@@ -12,6 +13,6 @@ class LockProtocol(Protocol): # pragma no cover
 Lock: type[LockProtocol] = RLock # pyright: ignore[reportAssignmentType]
 
 try:
-    from runtime.threading import Lock # pyright: ignore[reportUnusedImport, reportMissingImports, reportUnknownVariableType]
+    from runtime.threading import Lock  # pyright: ignore[reportUnusedImport, reportMissingImports, reportUnknownVariableType]  # noqa: F401
 except ImportError:
     pass

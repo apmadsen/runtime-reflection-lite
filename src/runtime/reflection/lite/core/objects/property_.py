@@ -1,12 +1,14 @@
 from typing import Any
+
 from typingutils import get_type_name
 
-from runtime.reflection.lite.core.objects.signature import Signature
 from runtime.reflection.lite.core.objects.member import Member
 from runtime.reflection.lite.core.objects.member_type import MemberType
+from runtime.reflection.lite.core.objects.signature import Signature
+
 
 class Property(Member):
-    __slots__ = [ "__getter", "__setter", "__deleter", "__abstract", "__bound_cls", "__reflected" ]
+    __slots__ = ["__abstract", "__bound_cls", "__deleter", "__getter", "__reflected", "__setter"]
 
     def __init__(
         self,

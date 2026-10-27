@@ -1,6 +1,7 @@
 from enum import Enum
 from inspect import Parameter
 
+
 class ParameterKind(Enum):
     """The ParameterKind class is an enumeration of the different kinds of parameters.
     """

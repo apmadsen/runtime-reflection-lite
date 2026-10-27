@@ -1,4 +1,4 @@
-from typing import Generic, TypeVar, Any
+from typing import Any, Generic, TypeVar
 from weakref import WeakValueDictionary
 
 from runtime.reflection.lite.core.threading import Lock
@@ -6,7 +6,7 @@ from runtime.reflection.lite.core.threading import Lock
 T = TypeVar("T")
 
 class Cache(Generic[T]):
-    __slots__ = [ "__map", "__lock" ]
+    __slots__ = ["__lock", "__map"]
 
     def __init__(self):
         self.__map = WeakValueDictionary[int | str, T]()
@@ -25,4 +25,4 @@ class Cache(Generic[T]):
 
 
 def get_id(obj: Any) -> int | str:
-    return f"{str(obj)}_{id(obj)}"
+    return f"{obj}_{id(obj)}"

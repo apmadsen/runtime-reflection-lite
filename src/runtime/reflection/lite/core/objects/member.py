@@ -1,7 +1,8 @@
 from runtime.reflection.lite.core.objects.member_type import MemberType
 
+
 class Member:
-    __slots__ = [ "__name", "__member_type", "__weakref__" ]
+    __slots__ = ["__member_type", "__name", "__weakref__"]
 
     def __init__(
         self,

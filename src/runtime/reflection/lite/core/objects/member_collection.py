@@ -1,15 +1,24 @@
 from __future__ import annotations
-from typing import Callable, Iterable, Iterator, Mapping, Generic, TypeVar, cast, overload, TYPE_CHECKING
-from collections.abc import ItemsView, ValuesView, KeysView
 
+from collections.abc import (
+    Callable,
+    ItemsView,
+    Iterable,
+    Iterator,
+    KeysView,
+    Mapping,
+    ValuesView,
+)
+from typing import TYPE_CHECKING, Generic, TypeVar, cast, overload
+
+from runtime.reflection.lite.core.objects.constructor import Constructor
+from runtime.reflection.lite.core.objects.deferred_reflection import DeferredReflection
+from runtime.reflection.lite.core.objects.field import Field
+from runtime.reflection.lite.core.objects.function import Function
 from runtime.reflection.lite.core.objects.member import Member
 from runtime.reflection.lite.core.objects.member_info import MemberInfo
-from runtime.reflection.lite.core.objects.deferred_reflection import DeferredReflection
-from runtime.reflection.lite.core.objects.constructor import Constructor
-from runtime.reflection.lite.core.objects.function import Function
 from runtime.reflection.lite.core.objects.method import Method
 from runtime.reflection.lite.core.objects.property_ import Property
-from runtime.reflection.lite.core.objects.field import Field
 from runtime.reflection.lite.core.objects.variable import Variable
 
 if TYPE_CHECKING:
@@ -18,9 +27,9 @@ if TYPE_CHECKING:
 
 T = TypeVar("T", bound=Member)
 
-class InternalMemberCollection():
+class InternalMemberCollection:
 
-    __slots__ = [ "__members", "__index", "__index_reverse", "__completed" ]
+    __slots__ = ["__completed", "__index", "__index_reverse", "__members"]
 
     def __init__(self):
         self.__completed = False
@@ -42,11 +51,11 @@ class InternalMemberCollection():
             or a member with the same name is already present.
         """
         if self.__completed: # pragma: no cover
-            raise Exception("MemberCollection is completed")
+            raise Exception("MemberCollection is completed")  # noqa: TRY002
 
         # a member can be present several times with different names, but each name must be unique
         if name in self.__index: # pragma: no cover
-            raise Exception(f"Member '{name}' is already present in collection")
+            raise Exception(f"Member '{name}' is already present in collection")  # noqa: TRY002
 
         self.__members.append(member)
         self.__index[name] = info, member
@@ -94,7 +103,7 @@ class MemberCollection(Mapping[str, tuple[MemberInfo, Member]]):
     def keys(self, predicate: Callable[[MemberInfo], bool]) -> KeysView[str]:
         ...
     def keys(self, predicate: Callable[[MemberInfo], bool] | None = None) -> KeysView[str]:
-        index: Mapping[str, tuple[MemberInfo, Member]] = getattr(self.__src, "_InternalMemberCollection__index")
+        index: Mapping[str, tuple[MemberInfo, Member]] = getattr(self.__src, "_InternalMemberCollection__index")  # noqa: B009
         return KeysView({
             name: info
             for name, (info, _member) in index.items()
@@ -108,7 +117,7 @@ class MemberCollection(Mapping[str, tuple[MemberInfo, Member]]):
     def values(self, predicate: Callable[[MemberInfo], bool]) -> ValuesView[tuple[MemberInfo, Member]]:
         ...
     def values(self, predicate: Callable[[MemberInfo], bool] | None = None) -> ValuesView[tuple[MemberInfo, Member]]:
-        index: Mapping[str, tuple[MemberInfo, Member | DeferredReflection[Member]]] = getattr(self.__src, "_InternalMemberCollection__index")
+        index: Mapping[str, tuple[MemberInfo, Member | DeferredReflection[Member]]] = getattr(self.__src, "_InternalMemberCollection__index")  # noqa: B009
         return ValuesView({
             name: (
                 info,
@@ -125,7 +134,7 @@ class MemberCollection(Mapping[str, tuple[MemberInfo, Member]]):
     def items(self, predicate: Callable[[MemberInfo], bool]) -> ItemsView[str, tuple[MemberInfo, Member]]:
         ...
     def items(self, predicate: Callable[[MemberInfo], bool] | None = None) -> ItemsView[str, tuple[MemberInfo, Member]]:
-        index: Mapping[str, tuple[MemberInfo, Member | DeferredReflection[Member]]] = getattr(self.__src, "_InternalMemberCollection__index")
+        index: Mapping[str, tuple[MemberInfo, Member | DeferredReflection[Member]]] = getattr(self.__src, "_InternalMemberCollection__index")  # noqa: B009
         return ItemsView({
             name: (
                 info,
@@ -142,7 +151,7 @@ class MemberCollection(Mapping[str, tuple[MemberInfo, Member]]):
     def subset(self, member_class: type[T], predicate: Callable[[MemberInfo], bool]) -> MemberCollectionSubset[T]:
         ...
     def subset(self, member_class: type[T], predicate: Callable[[MemberInfo], bool] | None = None) -> MemberCollectionSubset[T]:
-        index: Mapping[str, tuple[MemberInfo, Member]] = getattr(self.__src, "_InternalMemberCollection__index")
+        index: Mapping[str, tuple[MemberInfo, Member]] = getattr(self.__src, "_InternalMemberCollection__index")  # noqa: B009
         src = {
             name : (info, cast(T, member))
             for name, (info, member) in index.items()
@@ -179,7 +188,7 @@ class MemberCollection(Mapping[str, tuple[MemberInfo, Member]]):
         return self.subset(Variable)
 
     def __getitem__(self, name: str) -> tuple[MemberInfo, Member]:
-        index: Mapping[str, tuple[MemberInfo, Member | DeferredReflection[Member]]] = getattr(self.__src, "_InternalMemberCollection__index")
+        index: Mapping[str, tuple[MemberInfo, Member | DeferredReflection[Member]]] = getattr(self.__src, "_InternalMemberCollection__index")  # noqa: B009
         info, member = index[name]
         return info, member() if isinstance(member, DeferredReflection) else member
 
@@ -187,7 +196,7 @@ class MemberCollection(Mapping[str, tuple[MemberInfo, Member]]):
         return self.__src.__contains__(obj)
 
     def __iter__(self) -> Iterator[str]:
-        index: Mapping[str, Member] = getattr(self.__src, "_InternalMemberCollection__index")
+        index: Mapping[str, Member] = getattr(self.__src, "_InternalMemberCollection__index")  # noqa: B009
         yield from index
 
     def __len__(self) -> int:
@@ -225,11 +234,9 @@ class MemberCollectionSubset(Iterable[tuple[MemberInfo, T]], Generic[T]):
     @overload
     def __getitem__(self, index: str) -> tuple[MemberInfo, T]:
         """Return the member with the specified name"""
-        ...
     @overload
     def __getitem__(self, index: int) -> tuple[MemberInfo, T]:
         """Return the member at the specified index (sorted by name)"""
-        ...
     def __getitem__(self, index: str | int) -> tuple[MemberInfo, T]:
         if isinstance(index, str):
             info, member = self.__src.__getitem__(index)

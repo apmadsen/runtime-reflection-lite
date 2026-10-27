@@ -1,8 +1,10 @@
 from typing import Any
+
 from typingutils import get_type_name
 
 from runtime.reflection.lite.core.objects.member import Member
 from runtime.reflection.lite.core.objects.member_type import MemberType
+
 
 class Variable(Member):
     __slots__ = [ "__variable_type" ]

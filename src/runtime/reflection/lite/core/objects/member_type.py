@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class MemberType(Enum):
     CLASS = 1
     FIELD = 2
